@@ -1,0 +1,80 @@
+/* src/futa-style.css */
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: #2C3E50; /* Màu nền tối cho sidebar */
+    color: #ecf0f1; /* Màu văn bản sáng */
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ để nổi bật */
+  }
+  
+  .sidebar h2 {
+    color: #ecf0f1; /* Màu văn bản sáng */
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .sidebar-menu li {
+    margin-bottom: 1rem;
+  }
+  
+  .sidebar-menu li a {
+    color: #ecf0f1; /* Màu văn bản sáng */
+    text-decoration: none;
+    font-size: 1.1rem;
+    display: block;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease; /* Hiệu ứng chuyển đổi mượt mà */
+  }
+  
+  .sidebar-menu li a:hover {
+    background-color: #34495E; /* Màu nền đậm hơn khi hover */
+  }
+  
+  .sidebar-menu li a.active {
+    background-color: #1ABC9C; /* Màu nền cho mục được chọn */
+    color: #fff;
+  }
+  
+  /* src/futa-style.css */
+
+/* src/futa-style.css */
+
+/* Admin content */
+.admin-content {
+    margin-left: 270px; /* Đẩy nội dung qua phải để nhường chỗ cho sidebar */
+    padding: 40px; /* Tăng khoảng cách padding để làm rộng không gian */
+    box-sizing: border-box;
+    background-color: #ecf0f1; /* Màu nền sáng cho nội dung */
+    min-height: 100vh; /* Đảm bảo nội dung chiếm toàn bộ chiều cao */
+  }
+  
+  .admin-content h1 {
+    font-size: 2rem;
+    color: #2C3E50; /* Màu chữ chính */
+    margin-bottom: 1.5rem;
+  }
+  
+  .admin-content p {
+    font-size: 1rem;
+    color: #7f8c8d; /* Màu chữ phụ */
+    line-height: 1.6;
+  }
+  
+  

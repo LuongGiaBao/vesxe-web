@@ -1,0 +1,111 @@
+/* src/components/PopularRoutes.css */
+
+.popular-routes {
+    padding: 40px;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    margin: 0 auto;
+    width: auto;
+  }
+  
+  .popular-routes h2 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin-bottom: 5px;
+  }
+  
+  .popular-routes p {
+    font-size: 16px;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+  }
+  
+  .routes-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .route-card {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 300px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .route-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  .route-image {
+    background-size: cover;
+    background-position: center;
+    height: 180px;
+    position: relative;
+  }
+  
+  .route-title {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: white;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 18px;
+  }
+  
+  .route-destinations {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: #ffffff;
+  }
+  
+  .destination-item {
+    padding: 20px 20px !important;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+  }
+  
+  .destination-item:hover {
+    background-color: #f2f2f2;
+  }
+  
+  .destination-item:last-child {
+    border-bottom: none;
+  }
+  
+  .destination-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .destination-name {
+    font-weight: 600;
+    color: #34495e;
+    font-size: 16px;
+  }
+  
+  .destination-price {
+    color: #e74c3c;
+    font-weight: bold;
+  }
+  
+  .destination-info {
+    color: #95a5a6;
+    font-size: 14px;
+    margin-top: 5px;
+    align-items: start;
+    width: 100%;
+    display: flex;
+  }
+  

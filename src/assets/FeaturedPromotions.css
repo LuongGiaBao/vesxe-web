@@ -1,0 +1,43 @@
+/* src/components/FeaturedPromotions.css */
+
+.featured-promotions {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  
+  .featured-promotions h2 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .promotions-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .promo-card {
+    flex: 1 1 calc(33.33% - 20px); /* Responsive grid for three cards with space */
+    max-width: 33.33%; /* Ensure max width for each card */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .promo-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .promo-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+  

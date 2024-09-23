@@ -1,0 +1,225 @@
+/* src/pages/LoginPage.css */
+
+/* Toàn bộ trang */
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif; /* Đặt font chữ thân thiện và dễ đọc */
+    background-color: #f4f4f4; /* Màu nền nhạt để tăng cường sự thoải mái */
+}
+
+.login-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px; /* Giảm margin để phù hợp hơn với thiết bị di động */
+}
+
+.logo img {
+    height: 150px; /* Giảm kích thước logo cho cân đối */
+    max-width: 100%; /* Đảm bảo logo không vượt quá chiều rộng container */
+}
+
+.title h1 {
+    font-size: 2rem;
+    color: #333;
+    margin: 0;
+    font-weight: 700; /* Tăng độ đậm để dễ đọc hơn */
+}
+
+.title p {
+    color: #5CCC5C;
+    margin: 5px 0 20px;
+    font-weight: bold;
+    font-size: 1.1rem; /* Tăng kích thước chữ một chút để dễ đọc hơn */
+}
+
+/* Container chính cho phần đăng nhập và minh họa */
+.login-container {
+    display: flex;
+    align-items: stretch; /* Đảm bảo cả hình ảnh và form đều chiếm toàn bộ chiều cao của container */
+    justify-content: space-between; /* Tạo không gian giữa các phần tử */
+    background-color: #fff;
+    padding: 0; /* Xóa padding để hình ảnh sát với các cạnh */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px; /* Giới hạn chiều rộng tối đa để phù hợp hơn trên màn hình lớn */
+    width: 100%; /* Đảm bảo container chiếm 90% chiều rộng màn hình */
+    transition: box-shadow 0.3s ease; /* Hiệu ứng mượt mà khi hover */
+}
+
+.login-container:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Tăng độ bóng khi hover để tạo hiệu ứng nổi */
+}
+
+/* Đảm bảo hình ảnh minh họa khớp với container */
+.login-illustration {
+    flex: 1; /* Để hình ảnh chiếm toàn bộ không gian có sẵn */
+}
+
+.login-illustration img {
+    width: 100%; /* Đảm bảo hình ảnh chiếm toàn bộ chiều rộng container */
+    height: 100%; /* Đảm bảo hình ảnh chiếm toàn bộ chiều cao container */
+    object-fit: cover; /* Cắt hình ảnh để vừa khít container mà không làm biến dạng hình ảnh */
+    border-top-left-radius: 10px; /* Bo góc để phù hợp với container */
+    border-bottom-left-radius: 10px; /* Bo góc để phù hợp với container */
+}
+
+.login-form {
+    flex: 1; /* Để form chiếm toàn bộ không gian còn lại */
+    max-width: 300px;
+    width: 100%;
+    padding: 20px; /* Thêm padding cho form để tạo không gian nội dung */
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 12px 20px; /* Tăng padding để nút lớn hơn, dễ bấm hơn */
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.tab-button.active {
+    border-color: #5CCC5C;
+    color: #5CCC5C;
+}
+
+/* Input group cho phần nhập liệu */
+.input-group {
+    margin-bottom: 20px; /* Tăng khoảng cách dưới giữa các trường */
+    width: 90%; /* Đảm bảo input-group chiếm toàn bộ chiều rộng container */
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px; /* Tăng khoảng cách dưới nhãn */
+    font-weight: bold;
+    font-size: 0.9rem; /* Kích thước nhãn nhỏ gọn hơn */
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px; /* Tăng padding để tạo cảm giác thoải mái hơn khi nhập liệu */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem; /* Kích thước chữ trong ô nhập liệu */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Thêm hiệu ứng khi focus */
+}
+
+.input-group input:focus {
+    border-color: #5CCC5C; /* Màu viền nổi bật khi focus */
+    box-shadow: 0 0 5px rgba(92, 204, 92, 0.2); /* Thêm shadow khi focus */
+    outline: none; /* Xóa viền mặc định của trình duyệt */
+}
+
+.login-button {
+    width: 100%;
+    padding: 14px; /* Tăng padding để nút lớn hơn */
+    background-color: #5CCC5C;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Hiệu ứng mượt mà khi hover */
+}
+
+.login-button:hover {
+    background-color: #fff;
+    color: #333; /* Đổi màu chữ khi hover */
+    border: 1px solid #5CCC5C; /* Đổi màu viền khi hover */
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.forgot-password a {
+    color: #5CCC5C;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease; /* Hiệu ứng mượt mà khi hover */
+}
+
+.forgot-password a:hover {
+    color: #4CAF50; /* Đổi màu khi hover để tạo sự tương tác */
+    text-decoration: underline;
+}
+
+/* Media Queries để responsive */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column; /* Chuyển sang cột cho màn hình nhỏ hơn */
+        padding: 20px; /* Giảm padding để phù hợp hơn với màn hình nhỏ */
+    }
+
+    .login-illustration img {
+        max-width: 100%; /* Đảm bảo hình ảnh chiếm toàn bộ chiều rộng của container */
+        height: auto; /* Đảm bảo hình ảnh không bị biến dạng */
+        margin-bottom: 20px; /* Thêm khoảng cách dưới */
+    }
+
+    .form-header {
+        flex-direction: column; /* Chuyển sang cột cho các nút tab */
+        align-items: center;
+        width: 100%; /* Chiếm toàn bộ chiều rộng */
+    }
+
+    .tab-button {
+        width: 100%; /* Đặt nút tab chiếm toàn bộ chiều rộng */
+        text-align: center;
+        margin-bottom: 10px; /* Thêm khoảng cách dưới */
+    }
+
+    .login-form {
+        max-width: 100%; /* Đảm bảo form chiếm toàn bộ chiều rộng container */
+    }
+
+    .forgot-password {
+        text-align: center; /* Căn giữa liên kết "Quên mật khẩu?" */
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        margin-bottom: 30px; /* Giảm margin-bottom để phù hợp với màn hình nhỏ hơn */
+    }
+
+    .logo img {
+        height: 100px; /* Giảm kích thước logo cho màn hình rất nhỏ */
+    }
+
+    .title h1 {
+        font-size: 1.5rem; /* Giảm kích thước font chữ cho tiêu đề */
+    }
+
+    .title p {
+        font-size: 0.9rem; /* Giảm kích thước font chữ cho phụ đề */
+    }
+
+    .login-button {
+        font-size: 14px; /* Giảm kích thước font chữ cho nút trên màn hình nhỏ */
+        padding: 10px; /* Giảm padding để phù hợp hơn với màn hình nhỏ */
+    }
+}
