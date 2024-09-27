@@ -1,0 +1,54 @@
+/* src/assets/admin-style.css */
+
+/* Sidebar Container */
+.sidebar {
+    width: 250px; /* Chiều rộng cố định cho sidebar */
+    height: 100vh; /* Chiều cao toàn màn hình */
+    background-color: #333; /* Màu nền tối cho sidebar */
+    color: #fff; /* Màu chữ trắng */
+    padding: 20px;
+    box-sizing: border-box;
+    position: fixed; /* Đảm bảo sidebar luôn ở vị trí cố định */
+    top: 0;
+    left: 0;
+    overflow-y: auto; /* Thêm thanh cuộn nếu nội dung vượt quá chiều cao */
+  }
+  
+  /* Sidebar Heading */
+  .sidebar h2 {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  /* Sidebar Menu */
+  .sidebar-menu {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar-menu li {
+    margin-bottom: 15px;
+  }
+  
+  /* Sidebar Links */
+  .sidebar-menu li a {
+    color: #ddd; /* Màu chữ hơi nhạt cho các liên kết */
+    text-decoration: none;
+    font-size: 18px;
+    display: block;
+    padding: 10px;
+    border-radius: 4px;
+  }
+  
+  .sidebar-menu li a:hover {
+    background-color: #444; /* Thay đổi màu nền khi hover */
+    color: #fff;
+  }
+  
+  /* Active link style (nếu cần) */
+  .sidebar-menu li a.active {
+    background-color: #007BFF; /* Màu nền khác cho liên kết đang active */
+    color: white;
+  }
+  
