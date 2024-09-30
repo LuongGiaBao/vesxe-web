@@ -4,43 +4,51 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import "../assets/style.css";
 import { FetchData } from "../api/homepage";
+
 const Banner = () => {
   const [oneWay, setOneWay] = useState(true);
-  const [departure, setDeparture] = useState("TP. Hồ Chí Minh");
-  const [destination, setDestination] = useState("Bà Rịa - Vũng Tàu");
-  const [date, setDate] = useState(new Date("2024-09-05"));
+  const [departure, setDeparture] = useState("");
+  const [destination, setDestination] = useState("");
+  const [date, setDate] = useState(new Date());
   const [returnDate, setReturnDate] = useState(null);
-  const [tickets, setTickets] = useState(1);
+  const [tickets, setTickets] = useState([]);
   const [error, setError] = useState("");
   const [departureOptions, setDepartureOptions] = useState([]);
   const [destinationOptions, setDestinationOptions] = useState([]);
-
-
+  const [typeDeparture, setTypeDeparture] = useState();
+  // Fetch bus ticket data
   const fetchBusTickets = async () => {
     try {
       const response = await FetchData(); // Call your API to fetch bus tickets
-      const busTickets = response; // Use the response directly
+      const busTickets = response.data;
 
-      // Check if busTickets is defined and is an array
       if (!busTickets || !Array.isArray(busTickets)) {
-        throw new Error("BusTicket data is not an array or is undefined");
+        throw new Error("Bus ticket data is not valid.");
       }
 
       // Extract unique departure and destination points
       const departures = [
-        ...new Set(busTickets.map((ticket) => ticket.diemdi)),
-      ]; // Unique departure points
-
+        ...new Set(busTickets.map((ticket) => ticket.departure)),
+      ];
       const destinations = [
-        ...new Set(busTickets.map((ticket) => ticket.diemden)),
-      ]; // Unique destination points
+        ...new Set(busTickets.map((ticket) => ticket.destination)),
+      ];
+      // const firstTicket = busTickets.data; // Access the first ticket
+      // if (busTickets.length > 0) {
+      //   const travelDateStr = busTickets[0].date.trim(); // Trim spaces
+      //   const travelDate = new Date(travelDateStr); // Convert to Date object
 
-      // Update state with unique options
-      setDepartureOptions(departures); // Set unique departure options
-      setDestinationOptions(destinations); // Set unique destination options
+      //   if (isNaN(travelDate)) {
+      //     throw new Error("Invalid date value: " + travelDateStr);
+      //   }
+
+      //   setDate(travelDate); // Set the travel date in the state
+      // }
+      setDepartureOptions(departures);
+      setDestinationOptions(destinations);
     } catch (error) {
       console.error("Error fetching bus ticket data:", error);
-      setError("Không thể lấy danh sách vé xe");
+      setError("Không thể lấy danh sách vé xe.");
     }
   };
 
@@ -55,8 +63,12 @@ const Banner = () => {
       setError("Vui lòng nhập đầy đủ điểm đi, điểm đến và ngày đi.");
       return;
     }
-    setError("");
 
+    setError(""); // Clear any previous errors
+    const filteredTickets = tickets.filter(
+      (ticket) => ticket.typeDeparture === typeDeparture
+    );
+    // Navigate to search results
     navigate("/search-results", {
       state: {
         departure,
@@ -72,7 +84,7 @@ const Banner = () => {
   const handleTripTypeChange = (isOneWay) => {
     setOneWay(isOneWay);
     if (isOneWay) {
-      setReturnDate(null);
+      setReturnDate(null); // Clear return date if it's a one-way trip
     }
   };
 
@@ -105,45 +117,55 @@ const Banner = () => {
         </div>
 
         <div className="search-fields">
+          {/* Departure Field */}
           <div className="field">
             <label>Điểm đi</label>
             <select
               value={departure}
               onChange={(e) => setDeparture(e.target.value)}
             >
-              {departureOptions.map((option) => (
-                <option key={option} value={option}>
+              <option value="" disabled>
+                Chọn điểm đi
+              </option>
+              {departureOptions.map((option, index) => (
+                <option key={index} value={option}>
                   {option}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Destination Field */}
           <div className="field">
             <label>Điểm đến</label>
             <select
-              value={destination} // Correctly reference the destination state
-              onChange={(e) => setDestination(e.target.value)} // Update destination state
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
             >
-              {destinationOptions.map((option) => (
-                <option key={option} value={option}>
+              <option value="" disabled>
+                Chọn điểm đến
+              </option>
+              {destinationOptions.map((option, index) => (
+                <option key={index} value={option}>
                   {option}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Departure Date Picker */}
           <div className="field">
             <label>Ngày đi</label>
             <DatePicker
               selected={date}
-              onChange={(date) => setDate(date)}
+              onChange={(selectedDate) => setDate(selectedDate)}
               dateFormat="dd/MM/yyyy"
-              minDate={new Date()} // Chỉ cho phép chọn ngày từ hôm nay
+              minDate={new Date()} // Only allow future dates
               className="date-picker"
             />
           </div>
 
+          {/* Return Date Picker */}
           {!oneWay && (
             <div className="field">
               <label>Ngày về</label>
@@ -151,12 +173,13 @@ const Banner = () => {
                 selected={returnDate}
                 onChange={(date) => setReturnDate(date)}
                 dateFormat="dd/MM/yyyy"
-                minDate={date} // Ngày về phải sau ngày đi
+                minDate={date} // Return date must be after departure date
                 className="date-picker"
               />
             </div>
           )}
 
+          {/* Tickets Field */}
           <div className="field">
             <label>Số vé</label>
             <select value={tickets} onChange={handleTicketsChange}>
@@ -169,8 +192,10 @@ const Banner = () => {
           </div>
         </div>
 
+        {/* Display error message */}
         {error && <p style={{ color: "red" }}>{error}</p>}
 
+        {/* Search Button */}
         <button className="search-button" onClick={handleSearch}>
           Tìm chuyến xe
         </button>

@@ -90,7 +90,7 @@ const SearchResults = () => {
       setLoading(true);
       try {
         const response = await FetchDataSchedule(); // Gọi hàm FetchDataSchedule
-        console.log("Fetched data:", response); // Kiểm tra dữ liệu nhận được
+         // Kiểm tra dữ liệu nhận được
 
         // Kiểm tra và trích xuất mảng trips từ response.data
         if (Array.isArray(response.data)) {
