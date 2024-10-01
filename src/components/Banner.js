@@ -14,49 +14,50 @@ const Banner = () => {
   const [tickets, setTickets] = useState([]);
   const [error, setError] = useState("");
   const [departureOptions, setDepartureOptions] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   const [destinationOptions, setDestinationOptions] = useState([]);
   const [typeDeparture, setTypeDeparture] = useState();
   // Fetch bus ticket data
-  const fetchBusTickets = async () => {
-    try {
-      const response = await FetchData(); // Call your API to fetch bus tickets
-      const busTickets = response.data;
+  // const fetchBusTickets = async () => {
+  //   try {
+  //     const response = await FetchData(); // Call your API to fetch bus tickets
+  //     const busTickets = response.data;
 
-      if (!busTickets || !Array.isArray(busTickets)) {
-        throw new Error("Bus ticket data is not valid.");
-      }
+  //     if (!busTickets || !Array.isArray(busTickets)) {
+  //       throw new Error("Bus ticket data is not valid.");
+  //     }
 
-      // Extract unique departure and destination points
-      const departures = [
-        ...new Set(busTickets.map((ticket) => ticket.departure)),
-      ];
-      const destinations = [
-        ...new Set(busTickets.map((ticket) => ticket.destination)),
-      ];
-      // const firstTicket = busTickets.data; // Access the first ticket
-      // if (busTickets.length > 0) {
-      //   const travelDateStr = busTickets[0].date.trim(); // Trim spaces
-      //   const travelDate = new Date(travelDateStr); // Convert to Date object
+  //     // Extract unique departure and destination points
+  //     const departures = [...new Set(busTickets.map((ticket) => ticket.name))];
+  //     const destinations = [
+  //       ...new Set(busTickets.map((ticket) => ticket.name)),
+  //     ];
+  //     setDepartureOptions(departures);
+  //     setDestinationOptions(destinations);
+  //   } catch (error) {
+  //     console.error("Error fetching bus ticket data:", error);
+  //     setError("Không thể lấy danh sách vé xe.");
+  //   }
+  // };
 
-      //   if (isNaN(travelDate)) {
-      //     throw new Error("Invalid date value: " + travelDateStr);
-      //   }
-
-      //   setDate(travelDate); // Set the travel date in the state
-      // }
-      setDepartureOptions(departures);
-      setDestinationOptions(destinations);
-    } catch (error) {
-      console.error("Error fetching bus ticket data:", error);
-      setError("Không thể lấy danh sách vé xe.");
-    }
-  };
-
-  useEffect(() => {
-    fetchBusTickets();
-  }, []);
+  // useEffect(() => {
+  //   fetchBusTickets();
+  // }, []);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const fetchedProvinces = await FetchData();
+        setProvinces(fetchedProvinces);
+      } catch (error) {
+        console.error("Failed to fetch provinces:", error);
+      }
+    };
+
+    fetchProvinces();
+  }, []);
 
   const handleSearch = () => {
     if (!departure || !destination || !date) {
@@ -124,12 +125,9 @@ const Banner = () => {
               value={departure}
               onChange={(e) => setDeparture(e.target.value)}
             >
-              <option value="" disabled>
-                Chọn điểm đi
-              </option>
-              {departureOptions.map((option, index) => (
-                <option key={index} value={option}>
-                  {option}
+              {provinces.map((province, index) => (
+                <option key={index} value={province.name}>
+                  {province.name}
                 </option>
               ))}
             </select>
@@ -142,12 +140,9 @@ const Banner = () => {
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
             >
-              <option value="" disabled>
-                Chọn điểm đến
-              </option>
-              {destinationOptions.map((option, index) => (
-                <option key={index} value={option}>
-                  {option}
+              {provinces.map((province, index) => (
+                <option key={index} value={province.name}>
+                  {province.name}
                 </option>
               ))}
             </select>
