@@ -1,52 +1,60 @@
-// src/admin/TripManagement.js
-import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 
-const TripManagement = () => {
+import React, { useEffect, useState } from "react";
+
+import Sidebar from "../components/Sidebar";
+import { fetchAllTrips } from "../api/TripApi";
+
+const AdminTrip = () => {
   const [trips, setTrips] = useState([]);
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
-    // Giả lập API call để lấy danh sách chuyến xe
-    const fetchTrips = async () => {
-      const tripData = [
-        { id: 1, route: 'TP. HCM - Vũng Tàu', departureTime: '2024-09-30 08:00', type: 'Giường nằm', seats: 40, booked: 25 },
-        { id: 2, route: 'Hà Nội - Hải Phòng', departureTime: '2024-09-30 14:00', type: 'Ghế ngồi', seats: 30, booked: 18 },
-        // Thêm nhiều chuyến xe khác
-      ];
-      setTrips(tripData);
+    const getTrips = async () => {
+      try {
+        const data = await fetchAllTrips(); // Gọi hàm fetchAllTrips
+        setTrips(data.data); // Lưu dữ liệu chuyến đi vào state
+      } catch (error) {
+        setError("Không thể lấy danh sách chuyến đi");
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchTrips();
-  }, []);
 
+    getTrips();
+  }, []);
   return (
-    <div className="trip-management">
+    <div className="admin-dashboard">
       <Sidebar />
       <div className="admin-content">
-        <h1>Quản lý chuyến xe</h1>
+        <h1>Quản lý Chuyến đi</h1>
         <table className="admin-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Tuyến đường</th>
+              <th>Điểm đi</th>
+              <th>Điểm đến</th>
+              <th>Khoảng cách</th>
+              <th>Thời gian di chuyển</th>
               <th>Thời gian khởi hành</th>
-              <th>Loại xe</th>
-              <th>Số ghế</th>
-              <th>Đã đặt</th>
+              <th>Trạng thái</th>
               <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {trips.map(trip => (
+            {trips.map((trip) => (
               <tr key={trip.id}>
                 <td>{trip.id}</td>
-                <td>{trip.route}</td>
-                <td>{trip.departureTime}</td>
-                <td>{trip.type}</td>
-                <td>{trip.seats}</td>
-                <td>{trip.booked}</td>
+                <td>{trip.attributes.departureLocation}</td>
+                <td>{trip.attributes.arrivalLocation}</td>
+                <td>{trip.attributes.distance}</td>
+                <td>{trip.attributes.travelTime}</td>
                 <td>
-                  <button className="edit-btn">Chỉnh sửa</button>
-                  <button className="delete-btn">Xóa</button>
+                  {new Date(trip.attributes.departureTime).toLocaleString()}
+                </td>
+                <td>{trip.attributes.status}</td>
+                <td>
+                  <button>Chỉnh sửa</button>
+                  <button>Xóa</button>
                 </td>
               </tr>
             ))}
@@ -57,4 +65,4 @@ const TripManagement = () => {
   );
 };
 
-export default TripManagement;
+export default AdminTrip;
