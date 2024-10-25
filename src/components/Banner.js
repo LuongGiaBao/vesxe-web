@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
+import { FetchProvinces, FetchTrips } from "../api/homepage";
 import "../assets/style.css";
-import { FetchData } from "../api/homepage";
 
 const Banner = () => {
   const [oneWay, setOneWay] = useState(true);
@@ -17,39 +17,12 @@ const Banner = () => {
   const [provinces, setProvinces] = useState([]);
   const [destinationOptions, setDestinationOptions] = useState([]);
   const [typeDeparture, setTypeDeparture] = useState();
-  // Fetch bus ticket data
-  // const fetchBusTickets = async () => {
-  //   try {
-  //     const response = await FetchData(); // Call your API to fetch bus tickets
-  //     const busTickets = response.data;
-
-  //     if (!busTickets || !Array.isArray(busTickets)) {
-  //       throw new Error("Bus ticket data is not valid.");
-  //     }
-
-  //     // Extract unique departure and destination points
-  //     const departures = [...new Set(busTickets.map((ticket) => ticket.name))];
-  //     const destinations = [
-  //       ...new Set(busTickets.map((ticket) => ticket.name)),
-  //     ];
-  //     setDepartureOptions(departures);
-  //     setDestinationOptions(destinations);
-  //   } catch (error) {
-  //     console.error("Error fetching bus ticket data:", error);
-  //     setError("Không thể lấy danh sách vé xe.");
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchBusTickets();
-  // }, []);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const fetchedProvinces = await FetchData();
+        const fetchedProvinces = await FetchProvinces();
         setProvinces(fetchedProvinces);
       } catch (error) {
         console.error("Failed to fetch provinces:", error);
@@ -59,27 +32,58 @@ const Banner = () => {
     fetchProvinces();
   }, []);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!departure || !destination || !date) {
       setError("Vui lòng nhập đầy đủ điểm đi, điểm đến và ngày đi.");
       return;
     }
 
+    if (departure === destination) {
+      setError("Điểm đi và điểm đến không được trùng nhau.");
+      return;
+    }
+
     setError(""); // Clear any previous errors
-    const filteredTickets = tickets.filter(
-      (ticket) => ticket.typeDeparture === typeDeparture
-    );
-    // Navigate to search results
-    navigate("/search-results", {
-      state: {
-        departure,
-        destination,
-        date,
-        returnDate,
-        tickets,
-        oneWay,
-      },
-    });
+
+    try {
+      // Gọi hàm FetchTrips với các bộ lọc đã chọn
+      // Gọi hàm FetchTrips để lấy tất cả các chuyến xe
+      const allTrips = await FetchTrips();
+
+      const filteredTrips = allTrips.filter(
+        (trip) =>
+          trip.departure.id === parseInt(departure) &&
+          trip.destination.id === parseInt(destination) &&
+          trip.seatsLeft >= parseInt(tickets)
+      );
+
+      console.log("Filtered trips:", filteredTrips);
+      if (filteredTrips.length === 0) {
+        setError("Không tìm thấy chuyến xe phù hợp.");
+        return;
+      }
+      // Tìm đối tượng departure và destination từ danh sách provinces
+      const departureProvince = provinces.find(
+        (prov) => prov.id === parseInt(departure)
+      );
+      const destinationProvince = provinces.find(
+        (prov) => prov.id === parseInt(destination)
+      );
+      // Điều hướng đến trang kết quả tìm kiếm với các chuyến xe đã lọc
+      navigate("/search-results", {
+        state: {
+          departure: departureProvince,
+          destination: destinationProvince,
+          date,
+          returnDate,
+          tickets,
+          oneWay,
+          trips: filteredTrips,
+        },
+      });
+    } catch (error) {
+      setError("Đã xảy ra lỗi khi tìm chuyến xe.");
+    }
   };
 
   const handleTripTypeChange = (isOneWay) => {
@@ -97,25 +101,7 @@ const Banner = () => {
   return (
     <div className="banner">
       <div className="search-box">
-        <div className="trip-type">
-          <label>
-            <input
-              type="radio"
-              checked={oneWay}
-              onChange={() => handleTripTypeChange(true)}
-            />
-            Một chiều
-          </label>
-
-          <label>
-            <input
-              type="radio"
-              checked={!oneWay}
-              onChange={() => handleTripTypeChange(false)}
-            />
-            Khứ hồi
-          </label>
-        </div>
+       
 
         <div className="search-fields">
           {/* Departure Field */}
@@ -125,6 +111,7 @@ const Banner = () => {
               value={departure}
               onChange={(e) => setDeparture(e.target.value)}
             >
+              <option value="">Chọn điểm đi</option>
               {provinces.map((province, index) => (
                 <option key={index} value={province.name}>
                   {province.name}
@@ -140,6 +127,7 @@ const Banner = () => {
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
             >
+              <option value="">Chọn điểm đến</option>
               {provinces.map((province, index) => (
                 <option key={index} value={province.name}>
                   {province.name}
@@ -173,21 +161,8 @@ const Banner = () => {
               />
             </div>
           )}
-
-          {/* Tickets Field */}
-          <div className="field">
-            <label>Số vé</label>
-            <select value={tickets} onChange={handleTicketsChange}>
-              {[...Array(10)].map((_, i) => (
-                <option key={i} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
-        {/* Display error message */}
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         {/* Search Button */}
@@ -200,3 +175,9 @@ const Banner = () => {
 };
 
 export default Banner;
+
+
+
+
+
+

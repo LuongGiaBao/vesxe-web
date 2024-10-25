@@ -1,6 +1,7 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import '../assets/Sidebar.css';
+// src/components/Sidebar.js
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
+import "../assets/Sidebar.css";
 
 const Sidebar = ({ adminName, onLogout }) => {
   return (
@@ -8,7 +9,6 @@ const Sidebar = ({ adminName, onLogout }) => {
       <h2>Admin Panel</h2>
       <div className="admin-info">
         <p>Xin chào, {adminName}</p> {/* Hiển thị tên admin */}
-       
       </div>
       <ul className="sidebar-menu">
         <li>
@@ -16,24 +16,70 @@ const Sidebar = ({ adminName, onLogout }) => {
             Dashboard
           </NavLink>
         </li>
+
+        {/* Quản lý người dùng */}
         <li>
           <NavLink to="/admin/users" activeClassName="active">
             Quản lý người dùng
           </NavLink>
         </li>
+
+        {/* Quản lý chuyến xe và submenu */}
         <li>
-          <NavLink to="/admin/trips" activeClassName="active">
+          <NavLink to="/admin/trips " activeClassName="active">
             Quản lý chuyến xe
           </NavLink>
         </li>
         <li>
-          <NavLink to="/admin/invoices" activeClassName="active">
+          <NavLink to="/admin/pickup-points" activeClassName="active">
+            Quản lý Điểm Đón
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/admin/drop-off-points" activeClassName="active">
+            Quản lý Điểm trả
+          </NavLink>
+        </li>
+        {/* Quản lý vé */}
+        <li>
+          <NavLink to="/admin/tickets" activeClassName="active">
             Quản lý vé
           </NavLink>
         </li>
-        {/* Thêm các mục quản lý khác tại đây */}
+
+        {/* Quản lý giá */}
+        <li>
+          <NavLink to="/admin/prices" activeClassName="active">
+            Quản lý giá
+          </NavLink>
+        </li>
+
+        {/* Quản lý khuyến mãi */}
+        <li>
+          <NavLink to="/admin/promotions" activeClassName="active">
+            Quản lý khuyến mãi
+          </NavLink>
+        </li>
+
+        {/* Thống kê & Báo cáo */}
+        <li>
+          <NavLink to="/admin/reports" activeClassName="active">
+            Thống kê & Báo cáo
+          </NavLink>
+        </li>
+
+        {/* Quản lý thanh toán */}
+        <li>
+          <NavLink to="/admin/payments" activeClassName="active">
+            Quản lý thanh toán
+          </NavLink>
+        </li>
       </ul>
-      <button onClick={onLogout} className="logout-btn">Đăng xuất</button> {/* Nút đăng xuất */}
+
+      {/* Đăng xuất */}
+      <button onClick={onLogout} className="logout-btn">
+        Đăng xuất
+      </button>
     </div>
   );
 };
