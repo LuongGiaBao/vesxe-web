@@ -107,13 +107,7 @@ const DropPointsManagement = () => {
     setEditingPoint(null);
   };
 
-  if (loading) {
-    return <div>Đang tải dữ liệu...</div>;
-  }
 
-  if (error) {
-    return <div>{error}</div>;
-  }
 
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },

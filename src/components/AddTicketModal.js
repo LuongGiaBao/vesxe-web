@@ -8,9 +8,9 @@ const AddTicketModal = ({ isOpen, onClose, onAdd, onEdit, ticketData }) => {
   useEffect(() => {
     if (ticketData.id) {
       form.setFieldsValue({
-        price: ticketData.price,
         status: ticketData.status,
-        seatNumber: ticketData.seat ? ticketData.seat.seatNumber : '',
+        // price: ticketData.price,
+        // seatNumber: ticketData.seat ? ticketData.seat.seatNumber : '',
       });
       setIsEditing(true);
     } else {
@@ -22,9 +22,9 @@ const AddTicketModal = ({ isOpen, onClose, onAdd, onEdit, ticketData }) => {
   const handleSubmit = async () => {
     const values = await form.validateFields();
     const ticketInfo = {
-      price: values.price,
       status: values.status,
-      seat: values.seatNumber ? { data: { attributes: { seatNumber: values.seatNumber } } } : null,
+      // price: values.price,
+      // seat: values.seatNumber ? { data: { attributes: { seatNumber: values.seatNumber } } } : null,
       // Add more fields as needed
     };
 
@@ -45,9 +45,11 @@ const AddTicketModal = ({ isOpen, onClose, onAdd, onEdit, ticketData }) => {
       footer={null}
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        {/* 
         <Form.Item label="Giá" name="price" rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}>
           <Input type="number" />
-        </Form.Item>
+        </Form.Item> 
+        */}
         <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}>
           <Select>
             <Select.Option value="booked">Đã đặt</Select.Option>
@@ -55,9 +57,11 @@ const AddTicketModal = ({ isOpen, onClose, onAdd, onEdit, ticketData }) => {
             <Select.Option value="canceled">Đã hủy</Select.Option>
           </Select>
         </Form.Item>
+        {/*
         <Form.Item label="Số ghế" name="seatNumber">
           <Input type="number" />
-        </Form.Item>
+        </Form.Item> 
+        */}
         <Form.Item>
           <Button type="primary" htmlType="submit">
             {isEditing ? "Cập nhật" : "Thêm"}

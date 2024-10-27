@@ -43,13 +43,13 @@ const TicketsManagement = () => {
     const ticketToEdit = tickets.find((t) => t.id === id);
     setEditingTicket({
       id: ticketToEdit.id,
-      price: ticketToEdit.attributes.price,
       status: ticketToEdit.attributes.status,
-      seat: ticketToEdit.attributes.seat?.data
-        ? ticketToEdit.attributes.seat.data.attributes
-        : null,
-      user: ticketToEdit.attributes.users_permissions_user.data.attributes,
-      trips: ticketToEdit.attributes.trips.data,
+      // price: ticketToEdit.attributes.price,
+      // seat: ticketToEdit.attributes.seat?.data
+      //   ? ticketToEdit.attributes.seat.data.attributes
+      //   : null,
+      // user: ticketToEdit.attributes.users_permissions_user.data.attributes,
+      // trips: ticketToEdit.attributes.trips.data,
     });
     setModalVisible(true);
   };
@@ -88,10 +88,8 @@ const TicketsManagement = () => {
 
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
-    { title: "Giá", dataIndex: "price", key: "price" },
     { title: "Trạng thái", dataIndex: "status", key: "status" },
-    { title: "Số ghế", dataIndex: "seatNumber", key: "seatNumber" },
-    { title: "Người dùng", dataIndex: "username", key: "username" },
+    // { title: "Người dùng", dataIndex: "username", key: "username" },
     {
       title: "Hành động",
       key: "action",
@@ -128,14 +126,10 @@ const TicketsManagement = () => {
         </Button>
         <Table
           dataSource={tickets.map((ticket) => ({
-            id: ticket.id,
-            price: ticket.attributes.price,
+            id: ticket.id, 
             status: ticket.attributes.status,
-            seatNumber: ticket.attributes.seat?.data
-              ? ticket.attributes.seat.data.attributes.seatNumber
-              : "Không có",
-            username:
-              ticket.attributes.users_permissions_user.data.attributes.username,
+            // username:
+            //   ticket.attributes.users_permissions_user.data.attributes.username,
           }))}
           columns={columns}
           rowKey="id"

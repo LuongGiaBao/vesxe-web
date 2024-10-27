@@ -1,8 +1,15 @@
 // src/components/AddDropPointModal.js
-import React, { useState } from 'react';
-import { Modal, Form, Input, Button, message } from 'antd';
+import React, { useState } from "react";
+import { Modal, Form, Input, Button, message } from "antd";
 
-const AddDropPointModal = ({ isOpen, onClose, onAdd, onEdit, dropPoint, setDropPoint }) => {
+const AddDropPointModal = ({
+  isOpen,
+  onClose,
+  onAdd,
+  onEdit,
+  dropPoint,
+  setDropPoint,
+}) => {
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
@@ -29,7 +36,7 @@ const AddDropPointModal = ({ isOpen, onClose, onAdd, onEdit, dropPoint, setDropP
 
   return (
     <Modal
-      title={dropPoint.id ? "Chỉnh Sửa Điểm Đến" : "Thêm Điểm Đến"}
+      title={dropPoint.id ? "Thêm Điểm Đến" : "Chỉnh Sửa Điểm Đến"}
       visible={isOpen}
       onCancel={resetForm}
       footer={null}
@@ -38,14 +45,18 @@ const AddDropPointModal = ({ isOpen, onClose, onAdd, onEdit, dropPoint, setDropP
         <Form.Item label="Location" required>
           <Input
             value={dropPoint.location}
-            onChange={(e) => setDropPoint({ ...dropPoint, location: e.target.value })}
+            onChange={(e) =>
+              setDropPoint({ ...dropPoint, location: e.target.value })
+            }
             required
           />
         </Form.Item>
         <Form.Item label="Address" required>
           <Input
             value={dropPoint.address}
-            onChange={(e) => setDropPoint({ ...dropPoint, address: e.target.value })}
+            onChange={(e) =>
+              setDropPoint({ ...dropPoint, address: e.target.value })
+            }
             required
           />
         </Form.Item>
@@ -53,7 +64,7 @@ const AddDropPointModal = ({ isOpen, onClose, onAdd, onEdit, dropPoint, setDropP
           <Button type="primary" htmlType="submit" loading={loading}>
             {dropPoint.id ? "Cập Nhật" : "Thêm"}
           </Button>
-          <Button style={{ marginLeft: '8px' }} onClick={resetForm}>
+          <Button style={{ marginLeft: "8px" }} onClick={resetForm}>
             Đóng
           </Button>
         </Form.Item>

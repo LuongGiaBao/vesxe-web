@@ -1,5 +1,5 @@
 // src/components/Sidebar.js
-import React, { useState } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
 import "../assets/Sidebar.css";
 
@@ -24,9 +24,9 @@ const Sidebar = ({ adminName, onLogout }) => {
           </NavLink>
         </li>
 
-        {/* Quản lý chuyến xe và submenu */}
+        {/* Quản lý chuyến xe và các mục con */}
         <li>
-          <NavLink to="/admin/trips " activeClassName="active">
+          <NavLink to="/admin/trips" activeClassName="active">
             Quản lý chuyến xe
           </NavLink>
         </li>
@@ -37,9 +37,17 @@ const Sidebar = ({ adminName, onLogout }) => {
         </li>
         <li>
           <NavLink to="/admin/drop-off-points" activeClassName="active">
-            Quản lý Điểm trả
+            Quản lý Điểm Trả
           </NavLink>
         </li>
+        
+        {/* Thêm mục Quản lý Địa điểm */}
+        <li>
+          <NavLink to="/admin/locations" activeClassName="active">
+            Quản lý Địa điểm
+          </NavLink>
+        </li>
+
         {/* Quản lý vé */}
         <li>
           <NavLink to="/admin/tickets" activeClassName="active">
