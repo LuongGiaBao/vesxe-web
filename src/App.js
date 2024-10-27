@@ -21,6 +21,7 @@ import ReportManagement from "./admin/ReportManagement";
 import PaymentManagement from "./admin/PaymentManagement";
 import PromotionManagement from "./admin/PromotionManagement";
 import TicketsManagement from "./admin/TicketsManagement";
+import LocationManagement from "./admin/LocationManagement";
 function App() {
   return (
     <Router>
@@ -56,6 +57,8 @@ function App() {
           <Route path="/admin/payments" element={<PaymentManagement />} />
           <Route path="/admin/promotions" element={<PromotionManagement />} />
           <Route path="/admin/tickets" element={<TicketsManagement />} />
+          <Route path="/admin/locations" element={<LocationManagement />} />
+
         </Routes>
       </div>
     </Router>

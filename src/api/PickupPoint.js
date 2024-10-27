@@ -13,8 +13,11 @@ export const fetchAllPickupPoint = async () => {
 
 export const createPickupPoint = async (pickupPoint) => {
   try {
-    const response = await apiClient.post("/pickup-points", { data: pickupPoint });
+    const response = await apiClient.post("/pickup-points", {
+      data: pickupPoint,
+    });
     return response.data;
+    console.log("res", response);
   } catch (error) {
     console.error("Error creating pickup point:", error);
     throw error;
@@ -23,7 +26,9 @@ export const createPickupPoint = async (pickupPoint) => {
 
 export const updatePickupPoint = async (id, updatedPoint) => {
   try {
-    const response = await apiClient.put(`/pickup-points/${id}`, { data: updatedPoint });
+    const response = await apiClient.put(`/pickup-points/${id}`, {
+      data: updatedPoint,
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating pickup point:", error);
