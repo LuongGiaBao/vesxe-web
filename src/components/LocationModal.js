@@ -8,6 +8,7 @@ const LocationModal = ({ visible, onCancel, onSave, location }) => {
     if (location) {
       form.setFieldsValue({
         name: location.attributes.name,
+        description: location.attributes.description || '',
       });
     } else {
       form.resetFields();

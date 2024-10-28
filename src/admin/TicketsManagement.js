@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Table, Modal, message } from "antd";
+import { Button, Table, Modal, message, Space } from "antd";
 import {
   fetchAllTickets,
   createTicket,
@@ -8,63 +8,77 @@ import {
 } from "../api/TicketApi";
 import AddTicketModal from "../components/AddTicketModal";
 import Sidebar from "../components/Sidebar";
+import { fetchAllPrices } from "../api/PricesApi";
+import { render } from "@testing-library/react";
+import { formatVietnamTime } from "../utils/timeUtils";
 
 const TicketsManagement = () => {
   const [tickets, setTickets] = useState([]);
+  const [ticketPrices, setTicketPrices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
-
+  const [selectedTicket, setSelectedTicket] = useState(null);
   useEffect(() => {
-    const getTickets = async () => {
-      try {
-        const data = await fetchAllTickets();
-        setTickets(data.data);
-      } catch {
-        message.error("Không thể lấy danh sách vé");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getTickets();
+    loadTickets();
+    loadPrices();
   }, []);
 
-  const handleCreate = async (newTicket) => {
+  const loadTickets = async () => {
+    setLoading(true);
     try {
-      const data = await createTicket(newTicket);
-      setTickets([...tickets, data.data]);
-      message.success("Thêm vé thành công!");
-    } catch {
-      message.error("Không thể tạo vé");
+      const data = await fetchAllTickets();
+      const ticketsWithPrices = data.data.map((ticket) => ({
+        id: ticket.id,
+        status: ticket.attributes.status,
+        createdAt: ticket.attributes.createdAt,
+        ticketPrices:
+          ticket.attributes.ticket_prices.data.map((price) => ({
+            id: price.id,
+            price: price.attributes.price,
+          })) || [],
+      }));
+      setTickets(ticketsWithPrices);
+    } catch (error) {
+      message.error("Không thể lấy danh sách vé");
+      console.error("Error fetching tickets:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEdit = (id) => {
-    const ticketToEdit = tickets.find((t) => t.id === id);
-    setEditingTicket({
-      id: ticketToEdit.id,
-      status: ticketToEdit.attributes.status,
-      // price: ticketToEdit.attributes.price,
-      // seat: ticketToEdit.attributes.seat?.data
-      //   ? ticketToEdit.attributes.seat.data.attributes
-      //   : null,
-      // user: ticketToEdit.attributes.users_permissions_user.data.attributes,
-      // trips: ticketToEdit.attributes.trips.data,
-    });
-    setModalVisible(true);
+  const loadPrices = async () => {
+    try {
+      const data = await fetchAllPrices();
+      setTicketPrices(data.data);
+    } catch (error) {
+      message.error("Không thể lấy danh sách giá vé");
+      console.error("Error fetching ticket prices:", error);
+    }
+  };
+
+  const handleCreate = async (newTicket) => {
+    try {
+      await createTicket(newTicket);
+      loadTickets(); // Reload the tickets after adding
+      message.success("Thêm vé thành công!");
+    } catch (error) {
+      message.error("Không thể tạo vé");
+      console.error("Error creating ticket:", error);
+    }
   };
 
   const handleUpdate = async (updatedTicket) => {
     try {
-      const data = await updateTicket(editingTicket.id, updatedTicket);
-      setTickets(
-        tickets.map((ticket) =>
-          ticket.id === data.data.id ? data.data : ticket
-        )
-      );
+      await updateTicket(editingTicket.id, updatedTicket);
+      loadTickets(); // Reload the tickets after updating
       message.success("Cập nhật vé thành công!");
-    } catch {
+      setModalVisible(false); // Close modal after updating
+      setEditingTicket(null); // Reset editingTicket after update
+    } catch (error) {
       message.error("Không thể cập nhật vé");
+      console.error("Error updating ticket:", error);
     }
   };
 
@@ -77,34 +91,89 @@ const TicketsManagement = () => {
       onOk: async () => {
         try {
           await deleteTicket(id);
-          setTickets(tickets.filter((ticket) => ticket.id !== id));
+          loadTickets(); // Reload the tickets after deletion
           message.success("Xóa vé thành công!");
-        } catch {
+        } catch (error) {
           message.error("Không thể xóa vé");
+          console.error("Error deleting ticket:", error);
         }
       },
     });
   };
 
+  const openEditModal = (ticket) => {
+    console.log("Dữ liệu vé đang chỉnh sửa:", ticket);
+    setEditingTicket(ticket); // Set the ticket being edited
+    setModalVisible(true); // Open the edit modal
+  };
+
+  const openDetailModal = (ticket) => {
+    setSelectedTicket(ticket); // Set the ticket being viewed
+    setDetailModalVisible(true); // Open the detail modal
+  };
+  const formatVietnamTime = (isoString) => {
+    // Chuyển đổi ISO string thành đối tượng Date
+    const date = new Date(isoString);
+    // Cộng thêm 7 giờ để chuyển sang giờ Việt Nam
+    const vietnamTime = new Date(date.getTime() - 12 * 60 * 60 * 1000); // Sửa lại để cộng 7 giờ
+
+    // Lấy giờ và phút
+    const hours = vietnamTime.getHours();
+    const minutes = vietnamTime.getMinutes();
+
+    // Xác định AM hoặc PM
+    const amPm = hours >= 12 ? "PM" : "AM";
+
+    // Chuyển đổi giờ về định dạng 12 giờ
+    const formattedHours = hours % 24 || 24; // Nếu giờ = 0 thì chuyển thành 12
+
+    // Định dạng thời gian theo kiểu Việt Nam (ngày/tháng/năm giờ:phút:giây AM/PM)
+    return `${vietnamTime.toLocaleDateString(
+      "vi-VN"
+    )} ${formattedHours}:${minutes.toString().padStart(2, "0")} ${amPm}`;
+  };
+
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
+    {
+      title: "Giá Vé",
+      dataIndex: "ticketPrices",
+      key: "prices",
+      render: (ticketPrices) => {
+        if (Array.isArray(ticketPrices) && ticketPrices.length > 0) {
+          return ticketPrices
+            .map((price) => `ID: ${price.id}, Giá: ${price.price} VND`)
+            .join(", ");
+        }
+        return "Không có giá";
+      },
+    },
+    {
+      title: "Ngày Tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text) => <span>{formatVietnamTime(text)}</span>, // Định dạng thời gian theo kiểu Việt Nam
+    },
     { title: "Trạng thái", dataIndex: "status", key: "status" },
-    // { title: "Người dùng", dataIndex: "username", key: "username" },
     {
       title: "Hành động",
       key: "action",
       render: (_, record) => (
         <>
-          <Button
-            type="primary"
-            onClick={() => handleEdit(record.id)}
-            style={{ marginRight: "8px" }}
-          >
-            Sửa
-          </Button>
-          <Button type="danger" onClick={() => handleDelete(record.id)}>
-            Xóa
-          </Button>
+          <Space>
+            <Button type="primary" onClick={() => openEditModal(record)}>
+              Sửa
+            </Button>
+            <Button danger onClick={() => handleDelete(record.id)}>
+              Xóa
+            </Button>
+            <Button
+              onClick={() => openDetailModal(record)}
+              style={{ marginLeft: 8 }}
+            >
+              Xem Chi Tiết
+            </Button>
+          </Space>
         </>
       ),
     },
@@ -118,22 +187,16 @@ const TicketsManagement = () => {
         <Button
           type="primary"
           onClick={() => {
-            setEditingTicket(null);
+            setEditingTicket(null); // Reset editing ticket for adding a new ticket
             setModalVisible(true);
           }}
         >
           Thêm Vé
         </Button>
         <Table
-          dataSource={tickets.map((ticket) => ({
-            id: ticket.id, 
-            status: ticket.attributes.status,
-            // username:
-            //   ticket.attributes.users_permissions_user.data.attributes.username,
-          }))}
+          dataSource={tickets}
           columns={columns}
           rowKey="id"
-          pagination={false}
           loading={loading}
         />
         <AddTicketModal
@@ -141,9 +204,37 @@ const TicketsManagement = () => {
           onClose={() => setModalVisible(false)}
           onAdd={handleCreate}
           onEdit={handleUpdate}
-          ticketData={editingTicket || {}}
-          setTicketData={setEditingTicket}
+          ticketData={editingTicket || {}} // Pass the editing ticket or an empty object
+          ticketPrices={ticketPrices}
         />
+        {/* Modal xem chi tiết vé */}
+        <Modal
+          title="Chi tiết Vé"
+          visible={detailModalVisible}
+          onCancel={() => setDetailModalVisible(false)}
+          footer={null} // Không cần footer cho modal này
+        >
+          {selectedTicket && (
+            <div>
+              <p>
+                <strong>ID:</strong> {selectedTicket.id}
+              </p>
+              <p>
+                <strong>Trạng thái:</strong> {selectedTicket.status}
+              </p>
+              <p>
+                <strong>Ngày Tạo:</strong>{" "}
+                {formatVietnamTime(selectedTicket.createdAt)}
+              </p>
+              <p>
+                <strong>Giá Vé:</strong>{" "}
+                {selectedTicket.ticketPrices
+                  .map((price) => `ID: ${price.id}, Giá: ${price.price} VND`)
+                  .join(", ")}
+              </p>
+            </div>
+          )}
+        </Modal>
       </div>
     </div>
   );

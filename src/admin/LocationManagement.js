@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, message } from "antd";
-import LocationModal from "../components/LocationModal"; 
+import { Table, Button, Modal, message,Space  } from "antd";
+import LocationModal from "../components/LocationModal";
 import Sidebar from "../components/Sidebar";
 import {
   createLocation,
@@ -116,13 +116,17 @@ const LocationManagement = () => {
       title: "Hành Động",
       key: "action",
       render: (_, location) => (
-        <span>
-          <Button onClick={() => showModal(location)}>Sửa</Button>
-          <Button danger onClick={() => handleDeleteLocation(location.id)}>
-            Xóa
-          </Button>
-          <Button onClick={() => showDetailModal(location)}>Xem Chi Tiết</Button>
-        </span>
+        <Space>
+        <Button type="primary" onClick={() => showModal(location)}>
+          Sửa
+        </Button>
+        <Button danger onClick={() => handleDeleteLocation(location.id)}>
+          Xóa
+        </Button>
+        <Button type="default" onClick={() => showDetailModal(location)}>
+          Xem Chi Tiết
+        </Button>
+      </Space>
       ),
     },
   ];
@@ -155,10 +159,12 @@ const LocationManagement = () => {
           {selectedLocation && (
             <>
               <p>
-                <strong>Tên Địa Điểm:</strong> {selectedLocation.attributes.name}
+                <strong>Tên Địa Điểm:</strong>{" "}
+                {selectedLocation.attributes.name}
               </p>
               <p>
-                <strong>Mô Tả:</strong> {selectedLocation.attributes.description || "N/A"}
+                <strong>Mô Tả:</strong>{" "}
+                {selectedLocation.attributes.description || "N/A"}
               </p>
               {/* Thêm thông tin khác nếu cần */}
             </>

@@ -13,8 +13,6 @@ import { fetchAllTickets } from "../api/TicketApi";
 import { fetchAllPickupPoint } from "../api/PickupPoint";
 import { fetchAllDropPoint } from "../api/DropoffPoint";
 import TripDetailModal from "../components/TripDetailModal";
-import { fetchAllDepartureLocation } from "../api/DepartureLocationApi";
-import { fetchAllArrivalLocation } from "../api/ArrivalLocation";
 import { fetchAllLocations } from "../api/LocationApi";
 
 const TripTable = () => {
@@ -24,8 +22,6 @@ const TripTable = () => {
   const [tickets, setTickets] = useState([]);
   const [pickupPoints, setPickupPoints] = useState([]);
   const [dropOffPoints, setDropOffPoints] = useState([]);
-  const [departureLocations, setDepartureLocations] = useState([]);
-  const [arrivalLocations, setArrivalLocations] = useState([]);
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [locations, setLocations] = useState([]);
@@ -225,6 +221,26 @@ const TripTable = () => {
       dataIndex: ["attributes", "arrivalTime"],
       key: "arrivalTime",
       render: (text) => <span>{formatVietnamTime(text)}</span>,
+    },
+    {
+      title: "Thời Gian Di Chuyển",
+      dataIndex: ["attributes", "travelTime"], // Thêm dòng này
+      key: "travelTime",
+      render: (_, trip) => {
+        const departureTime = new Date(trip.attributes.departureTime);
+        const arrivalTime = new Date(trip.attributes.arrivalTime);
+        const travelTime = Math.abs(arrivalTime - departureTime); // Tính khoảng cách thời gian
+
+        const days = Math.floor(travelTime / (1000 * 60 * 60 * 24)); // Số ngày
+        const hours = Math.floor(
+          (travelTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        ); // Số giờ
+        const minutes = Math.floor(
+          (travelTime % (1000 * 60 * 60)) / (1000 * 60)
+        ); // Số phút
+
+        return `${days} ngày, ${hours} giờ ${minutes} phút`;
+      },
     },
     {
       title: "Trạng Thái",

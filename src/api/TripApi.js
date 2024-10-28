@@ -18,6 +18,7 @@ export const createTrip = async (tripData) => {
     const response = await apiClient.post("/trips?populate=*", {
       data: {
         ...tripData,
+        // travelTime: tripData.travelTime,
         ticket: tripData.ticketId, // Relational ID for ticket
         pickup_point: tripData.pickupPoint, // Relational ID for pickup point
         drop_off_point: tripData.dropOffPoint, // Relational ID for drop-off point
