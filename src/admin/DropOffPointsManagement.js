@@ -107,8 +107,6 @@ const DropPointsManagement = () => {
     setEditingPoint(null);
   };
 
-
-
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
     {
@@ -148,7 +146,7 @@ const DropPointsManagement = () => {
           >
             Sửa
           </Button>
-          <Button type="danger" onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
         </>
@@ -160,9 +158,9 @@ const DropPointsManagement = () => {
     <div className="admin-dashboard">
       <Sidebar />
       <div className="admin-content">
-        <h1>Drop Points</h1>
+        <h1>Quản lý điểm trả</h1>
         <Button type="primary" onClick={() => setIsModalOpen(true)}>
-          Thêm Điểm Đến
+          Thêm Điểm Trả
         </Button>
         <Table
           dataSource={dropPoints.map((point) => ({

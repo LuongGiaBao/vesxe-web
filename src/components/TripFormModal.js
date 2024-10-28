@@ -38,11 +38,27 @@ const TripFormModal = ({
     }
   }, [trip, form]);
 
+  const calculateTravelTime = (departureTime, arrivalTime) => {
+    const departure = new Date(departureTime);
+    const arrival = new Date(arrivalTime);
+    const travelTimeInMs = Math.abs(arrival - departure);
+
+    const hours = Math.floor(travelTimeInMs / (1000 * 60 * 60));
+    const minutes = Math.floor(
+      (travelTimeInMs % (1000 * 60 * 60)) / (1000 * 60)
+    );
+
+    return `${hours} giờ ${minutes} phút`;
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-
+      values.travelTime = calculateTravelTime(
+        values.departureTime,
+        values.arrivalTime
+      );
       // Kiểm tra xem điểm khởi hành và điểm đến có trùng nhau không
       if (values.departureLocationId === values.arrivalLocationId) {
         message.error("Điểm khởi hành và điểm đến không được trùng nhau!");
@@ -131,7 +147,7 @@ const TripFormModal = ({
           label="Khoảng Cách"
           rules={[{ required: true, message: "Vui lòng nhập khoảng cách!" }]}
         >
-           <Input placeholder="Nhập khoảng cách" />
+          <Input placeholder="Nhập khoảng cách" />
         </Form.Item>
 
         <Form.Item

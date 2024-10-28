@@ -1,10 +1,12 @@
+
+
 import { apiClient } from "../services/apiservices";
 
 // Lấy tất cả vé
 export const fetchAllTickets = async () => {
   try {
     const response = await apiClient.get("/tickets?populate=*");
-    return response.data;
+    return response.data; // Đảm bảo trả về dữ liệu đúng
   } catch (error) {
     console.error("Error fetching tickets:", error);
     throw error;
@@ -14,7 +16,13 @@ export const fetchAllTickets = async () => {
 // Thêm vé
 export const createTicket = async (ticketData) => {
   try {
-    const response = await apiClient.post("/tickets", { data: ticketData });
+    const response = await apiClient.post("/tickets?populate=*", {
+      data: {
+        status: ticketData.status,
+        ticket_prices: ticketData.priceIds,
+      },
+    });
+    console.log("Response after creating ticket:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating ticket:", error);
@@ -25,14 +33,18 @@ export const createTicket = async (ticketData) => {
 // Cập nhật vé
 export const updateTicket = async (id, updatedData) => {
   try {
-    const response = await apiClient.put(`/tickets/${id}`, { data: updatedData });
+    const response = await apiClient.put(`/tickets/${id}`, {
+      data: {
+        status: updatedData.status,
+        ticket_prices: updatedData.priceIds,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating ticket:", error);
     throw error;
   }
 };
-
 // Xóa vé
 export const deleteTicket = async (id) => {
   try {

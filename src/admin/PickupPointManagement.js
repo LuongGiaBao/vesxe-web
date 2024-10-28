@@ -67,7 +67,11 @@ const PickupPointsManagement = () => {
 
     try {
       const data = await updatePickupPoint(editingPoint.id, updatedData);
-      setPickupPoints(pickupPoints.map((point) => (point.id === data.data.id ? data.data : point)));
+      setPickupPoints(
+        pickupPoints.map((point) =>
+          point.id === data.data.id ? data.data : point
+        )
+      );
       message.success("Cập nhật điểm đón thành công!");
       resetForm();
       setIsModalOpen(false);
@@ -100,8 +104,6 @@ const PickupPointsManagement = () => {
     setNewPickupPoint({ location: "", address: "" });
     setEditingPoint(null); // Reset editing point
   };
-
-
 
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
@@ -142,7 +144,7 @@ const PickupPointsManagement = () => {
           >
             Sửa
           </Button>
-          <Button type="danger" onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
         </>
@@ -154,7 +156,7 @@ const PickupPointsManagement = () => {
     <div className="admin-dashboard">
       <Sidebar />
       <div className="admin-content">
-        <h1>Pickup Points</h1>
+        <h1>Quản lý điểm đón</h1>
         <Button type="primary" onClick={() => setIsModalOpen(true)}>
           Thêm Điểm Đón
         </Button>
@@ -175,7 +177,7 @@ const PickupPointsManagement = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onAdd={handleCreate}
-          onEdit={handleUpdate} 
+          onEdit={handleUpdate}
           pickupPoint={{ ...newPickupPoint, id: editingPoint?.id }} // Truyền thông tin điểm đón
           setPickupPoint={setNewPickupPoint}
         />
