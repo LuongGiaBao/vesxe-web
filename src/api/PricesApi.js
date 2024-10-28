@@ -14,7 +14,12 @@ export const fetchAllPrices = async () => {
 // Thêm giá
 export const createPrice = async (priceData) => {
   try {
-    const response = await apiClient.post("/ticket-prices", { data: priceData });
+    const response = await apiClient.post("/ticket-prices?populate=*", {
+      data: {
+        ...priceData,
+        promotion: priceData.promotionId, // Thêm ID khuyến mãi vào dữ liệu
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating price:", error);
@@ -23,9 +28,14 @@ export const createPrice = async (priceData) => {
 };
 
 // Cập nhật giá
-export const updatePrice = async (id, updatedData) => {
+export const updatePrice = async (id, priceData) => {
   try {
-    const response = await apiClient.put(`/ticket-prices/${id}`, { data: updatedData });
+    const response = await apiClient.put(`/ticket-prices/${id}`, {
+      data: {
+        ...priceData,
+        promotion: priceData.promotionId, // Thêm ID khuyến mãi vào dữ liệu
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating price:", error);
