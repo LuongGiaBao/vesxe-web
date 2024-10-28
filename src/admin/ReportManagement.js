@@ -6,7 +6,7 @@ const ReportManagement = () => {
     <div className="admin-dashboard">
       <Sidebar />
       <div className="admin-content">
-        <h1>Prices</h1>
+        <h1>Thống kê và báo cáo</h1>
       </div>
     </div>
   );
