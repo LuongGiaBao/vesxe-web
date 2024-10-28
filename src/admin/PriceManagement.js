@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Button, Table, Modal, message } from "antd";
-
 import AddPriceModal from "../components/AddPriceModal";
 import {
   createPrice,
@@ -9,27 +8,43 @@ import {
   updatePrice,
 } from "../api/PricesApi";
 import Sidebar from "../components/Sidebar";
+import { fetchAllPromotions } from "../api/PromotionApi";
+import TicketPriceDetail from "../api/TicketPriceDetail";
 
 const PricesManagement = () => {
   const [prices, setPrices] = useState([]);
+  const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingPrice, setEditingPrice] = useState(null);
+  const [priceDetail, setPriceDetail] = useState(null);
 
   useEffect(() => {
-    const getPrices = async () => {
-      try {
-        const data = await fetchAllPrices();
-        setPrices(data.data);
-      } catch {
-        setError("Không thể lấy danh sách giá");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getPrices();
+    loadPrices();
+    loadPromotions();
   }, []);
+
+  const loadPrices = async () => {
+    try {
+      const data = await fetchAllPrices();
+      setPrices(data.data); // Assuming the structure is { data: [ ...prices ] }
+    } catch (err) {
+      setError("Failed to load prices.");
+      console.error(err);
+    }
+  };
+
+  const loadPromotions = async () => {
+    try {
+      const data = await fetchAllPromotions();
+      setPromotions(data.data);
+    } catch (err) {
+      setError("Failed to load promotions.");
+      console.error(err);
+    }
+  };
 
   const handleCreate = async (newPrice) => {
     try {
@@ -49,7 +64,7 @@ const PricesManagement = () => {
       startDate: priceToEdit.attributes.startDate,
       endDate: priceToEdit.attributes.endDate,
       status: priceToEdit.attributes.status,
-      trips: priceToEdit.attributes.trips.data,
+      promotionId: priceToEdit.attributes.promotion.data?.id,
     });
     setModalVisible(true);
   };
@@ -61,6 +76,7 @@ const PricesManagement = () => {
         prices.map((price) => (price.id === data.data.id ? data.data : price))
       );
       message.success("Cập nhật giá thành công!");
+      loadPrices();
     } catch {
       setError("Không thể cập nhật giá");
     }
@@ -84,12 +100,57 @@ const PricesManagement = () => {
     });
   };
 
+  const formatVietnamTime = (isoString) => {
+    const date = new Date(isoString);
+    const vietnamTime = new Date(date.getTime() - 12 * 60 * 60 * 1000);
+    const hours = vietnamTime.getHours();
+    const minutes = vietnamTime.getMinutes();
+    const amPm = hours >= 12 ? "PM" : "AM";
+    const formattedHours = hours % 12 || 12;
+    return `${vietnamTime.toLocaleDateString(
+      "vi-VN"
+    )} ${formattedHours}:${minutes.toString().padStart(2, "0")} ${amPm}`;
+  };
+
+  const handleViewDetail = (id) => {
+    const selectedPrice = prices.find((price) => price.id === id);
+    setPriceDetail(selectedPrice);
+    setDetailModalVisible(true);
+  };
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
-    { title: "Giá", dataIndex: "price", key: "price" },
-    { title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate" },
-    { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate" },
-    { title: "Trạng thái", dataIndex: "status", key: "status" },
+    {
+      title: "Giá",
+      dataIndex: "price",
+      key: "price",
+      render: (price) => `${price} VND`,
+    },
+    {
+      title: "Khuyến mãi",
+      dataIndex: "promotion",
+      key: "promotion",
+      render: (promotion) =>
+        promotion && promotion.data
+          ? promotion.data.attributes.promotionName
+          : "Không có",
+    },
+    {
+      title: "Ngày bắt đầu",
+      dataIndex: "startDate",
+      key: "startDate",
+      render: (startDate) => <span>{formatVietnamTime(startDate)}</span>,
+    },
+    {
+      title: "Ngày kết thúc",
+      dataIndex: "endDate",
+      key: "endDate",
+      render: (endDate) => <span>{formatVietnamTime(endDate)}</span>,
+    },
+    {
+      title: "Trạng thái vé",
+      dataIndex: "status",
+      key: "status",
+    },
     {
       title: "Hành động",
       key: "action",
@@ -102,8 +163,14 @@ const PricesManagement = () => {
           >
             Sửa
           </Button>
-          <Button type="danger" onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => handleDelete(record.id)}>
             Xóa
+          </Button>
+          <Button
+            onClick={() => handleViewDetail(record.id)}
+            style={{ marginRight: "8px" }}
+          >
+            Xem chi tiết
           </Button>
         </>
       ),
@@ -121,6 +188,7 @@ const PricesManagement = () => {
             setEditingPrice(null);
             setModalVisible(true);
           }}
+          style={{ marginBottom: "16px" }}
         >
           Thêm Giá
         </Button>
@@ -128,14 +196,14 @@ const PricesManagement = () => {
           dataSource={prices.map((price) => ({
             id: price.id,
             price: price.attributes.price,
-            startDate: new Date(price.attributes.startDate).toLocaleString(),
-            endDate: new Date(price.attributes.endDate).toLocaleString(),
+            startDate: price.attributes.startDate,
+            endDate: price.attributes.endDate,
             status: price.attributes.status,
+            promotion: price.attributes.promotion,
           }))}
           columns={columns}
           rowKey="id"
-          pagination={false}
-          loading={loading}
+          pagination={true}
         />
         <AddPriceModal
           isOpen={modalVisible}
@@ -144,6 +212,13 @@ const PricesManagement = () => {
           onEdit={handleUpdate}
           priceData={editingPrice || {}}
           setPriceData={setEditingPrice}
+          promotions={promotions}
+        />
+
+        <TicketPriceDetail
+          visible={detailModalVisible}
+          onClose={() => setDetailModalVisible(false)}
+          priceDetail={priceDetail}
         />
       </div>
     </div>
