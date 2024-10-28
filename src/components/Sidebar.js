@@ -1,9 +1,18 @@
 // src/components/Sidebar.js
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "../assets/Sidebar.css";
 
-const Sidebar = ({ adminName, onLogout }) => {
+const Sidebar = ({ adminName }) => {
+  const navigate = useNavigate(); // Khai báo hook navigate
+
+  const onLogout = () => {
+    // Xóa token khỏi localStorage
+    localStorage.removeItem("token");
+
+    // Chuyển hướng về trang đăng nhập
+    navigate("/admin/login"); // Đảm bảo đường dẫn này đúng với cấu hình router của bạn
+  };
   return (
     <div className="sidebar">
       <h2>Admin Panel</h2>
@@ -40,7 +49,7 @@ const Sidebar = ({ adminName, onLogout }) => {
             Quản lý Điểm Trả
           </NavLink>
         </li>
-        
+
         {/* Thêm mục Quản lý Địa điểm */}
         <li>
           <NavLink to="/admin/locations" activeClassName="active">
@@ -70,9 +79,10 @@ const Sidebar = ({ adminName, onLogout }) => {
         </li>
 
         {/* Thống kê & Báo cáo */}
+
         <li>
-          <NavLink to="/admin/reports" activeClassName="active">
-            Thống kê & Báo cáo
+          <NavLink to="/admin/invoices" activeClassName="active">
+            Quản lý hóa đơn
           </NavLink>
         </li>
 
@@ -80,6 +90,11 @@ const Sidebar = ({ adminName, onLogout }) => {
         <li>
           <NavLink to="/admin/payments" activeClassName="active">
             Quản lý thanh toán
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/admin/reports" activeClassName="active">
+            Thống kê & Báo cáo
           </NavLink>
         </li>
       </ul>

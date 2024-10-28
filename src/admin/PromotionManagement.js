@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Table, Modal, message } from "antd";
+import { Button, Table, Modal, message, Space } from "antd";
 import {
   fetchAllPromotions,
   createPromotion,
@@ -13,8 +13,9 @@ const PromotionsManagement = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
-
+  const [detailPromotion, setDetailPromotion] = useState(null);
   useEffect(() => {
     const getPromotions = async () => {
       try {
@@ -85,7 +86,20 @@ const PromotionsManagement = () => {
       },
     });
   };
-
+  const handleViewDetails = (id) => {
+    const promotionToView = promotions.find((p) => p.id === id);
+    setDetailPromotion({
+      id: promotionToView.id,
+      promotionName: promotionToView.attributes.promotionName,
+      description: promotionToView.attributes.description,
+      discountType: promotionToView.attributes.discountType,
+      discountValue: promotionToView.attributes.discountValue,
+      startDate: promotionToView.attributes.startDate,
+      endDate: promotionToView.attributes.endDate,
+      status: promotionToView.attributes.status,
+    });
+    setDetailModalVisible(true); // Mở modal chi tiết
+  };
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
     {
@@ -105,7 +119,7 @@ const PromotionsManagement = () => {
       title: "Hành Động",
       key: "action",
       render: (_, record) => (
-        <>
+        <Space>
           <Button
             type="primary"
             onClick={() => handleEdit(record.id)}
@@ -113,17 +127,24 @@ const PromotionsManagement = () => {
           >
             Sửa
           </Button>
-          <Button type="danger" onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
-        </>
+          <Button
+            type="default"
+            onClick={() => handleViewDetails(record.id)}
+            style={{ marginRight: "8px" }}
+          >
+            Xem Chi Tiết
+          </Button>
+        </Space>
       ),
     },
   ];
 
   return (
     <div className="admin-dashboard">
-       <Sidebar />
+      <Sidebar />
       <div className="admin-content">
         <h1>Quản lý khuyến mãi</h1>
         <Button
@@ -157,6 +178,41 @@ const PromotionsManagement = () => {
           promotionData={editingPromotion || {}}
           setPromotionData={setEditingPromotion}
         />
+
+        {/* Modal chi tiết khuyến mãi */}
+        <Modal
+          title="Chi Tiết Khuyến Mãi"
+          visible={detailModalVisible}
+          onCancel={() => setDetailModalVisible(false)}
+          footer={null}
+        >
+          {detailPromotion && (
+            <div>
+              <p>
+                <strong>Tên Khuyến Mãi:</strong> {detailPromotion.promotionName}
+              </p>
+              <p>
+                <strong>Mô Tả:</strong> {detailPromotion.description}
+              </p>
+              <p>
+                <strong>Giá Trị Giảm Giá:</strong>{" "}
+                {detailPromotion.discountValue}
+              </p>
+              <p>
+                <strong>Loại Giảm Giá:</strong> {detailPromotion.discountType}
+              </p>
+              <p>
+                <strong>Trạng Thái:</strong> {detailPromotion.status}
+              </p>
+              <p>
+                <strong>Ngày Bắt Đầu:</strong> {detailPromotion.startDate}
+              </p>
+              <p>
+                <strong>Ngày Kết Thúc:</strong> {detailPromotion.endDate}
+              </p>
+            </div>
+          )}
+        </Modal>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import GuestHomePage from "./pages/GuestHomePage";
 import AdminDashboard from "./admin/AdminDashboard";
 import LoginPage from "./pages/LoginPage";
-import AdminLoginPage from "./pages/AdminLoginPage";
+
 import UserManagement from "./admin/UserManagement";
 import OTPPage from "./pages/OTPPage";
 import SearchResults from "./pages/SearchResults";
@@ -22,6 +22,7 @@ import PaymentManagement from "./admin/PaymentManagement";
 import PromotionManagement from "./admin/PromotionManagement";
 import TicketsManagement from "./admin/TicketsManagement";
 import LocationManagement from "./admin/LocationManagement";
+import AdminLoginPage from "./admin/AdminLoginPage";
 function App() {
   return (
     <Router>
@@ -42,7 +43,6 @@ function App() {
           <Route path="/search" element={<TicketLookupPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/trips" element={<TripManagement />} />
-          <Route path="/admin/invoices" element={<InvoiceManagement />} />
           <Route
             path="/admin/pickup-points"
             element={<PickupPointsManagement />}
