@@ -3,16 +3,16 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "../assets/Sidebar.css";
 
-const Sidebar = ({ adminName }) => {
+const Sidebar = ({}) => {
   const navigate = useNavigate(); // Khai báo hook navigate
+  const adminName = localStorage.getItem("adminName");
 
   const onLogout = () => {
-    // Xóa token khỏi localStorage
     localStorage.removeItem("token");
-
-    // Chuyển hướng về trang đăng nhập
-    navigate("/admin/login"); // Đảm bảo đường dẫn này đúng với cấu hình router của bạn
+    localStorage.removeItem("adminName"); // Xóa tên admin khi đăng xuất
+    navigate("/admin/login");
   };
+
   return (
     <div className="sidebar">
       <h2>Admin Panel</h2>
@@ -57,17 +57,29 @@ const Sidebar = ({ adminName }) => {
           </NavLink>
         </li>
 
-        {/* Quản lý vé */}
         <li>
+          <NavLink to="/admin/schedules" activeClassName="active">
+            Quản lý lịch
+          </NavLink>
+        </li>
+
+        {/* Quản lý vé */}
+        {/* <li>
           <NavLink to="/admin/tickets" activeClassName="active">
             Quản lý vé
           </NavLink>
-        </li>
+        </li> */}
 
         {/* Quản lý giá */}
         <li>
           <NavLink to="/admin/prices" activeClassName="active">
             Quản lý giá
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink to="/admin/buses" activeClassName="active">
+            Quản lý Xe
           </NavLink>
         </li>
 

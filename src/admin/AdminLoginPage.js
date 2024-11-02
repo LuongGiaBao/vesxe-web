@@ -5,6 +5,7 @@ import backgroundImage from "../assets/image/banner2.jpg"; // Đảm bảo hình
 import { loginAdmin } from "../api/LoginApi";
 import { apiClient } from "../services/apiservices";
 import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 // Import hàm đăng nhập
 
 const AdminLoginPage = () => {
@@ -16,28 +17,46 @@ const AdminLoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      // Gọi API đăng nhập
       const response = await apiClient.post("/auth/local", {
         identifier: email,
         password: password,
       });
 
+      const { jwt, user } = response.data;
+
       // Kiểm tra trạng thái confirmed
-      if (!response.data.user.confirmed) {
-        alert(
-          "Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản."
-        );
+      if (!user.confirmed) {
+        if (!user.isAdmin) {
+          message.warning(
+            "Tài khoản của bạn chưa được xác nhận. Vui lòng kiểm tra email và làm theo hướng dẫn để xác nhận tài khoản. Nếu bạn không nhận được email xác nhận, hãy kiểm tra hộp thư rác hoặc liên hệ với bộ phận hỗ trợ.",
+            10 // Thời gian hiển thị thông báo (giây)
+          );
+        } else {
+          message.warning(
+            "Tài khoản admin chưa được xác nhận. Vui lòng liên hệ với quản trị viên hệ thống để được hỗ trợ.",
+            10
+          );
+        }
         return;
       }
 
-      // Nếu tài khoản đã được xác nhận
-      const token = response.data.jwt;
-      localStorage.setItem("token", token);
-      alert("Đăng nhập thành công!");
+      // Nếu tài khoản đã được xác nhận, lưu token và tên admin
+      localStorage.setItem("token", jwt);
+      localStorage.setItem("adminName", user.username);
+      message.success(
+        `Đăng nhập thành công! Chào mừng bạn trở lại, ${user.username}!`,
+        7
+      );
 
       // Chuyển hướng đến trang admin/dashboard
-      navigate("/admin/dashboard"); // Thay đổi đường dẫn nếu cần
+      navigate("/admin/dashboard");
     } catch (error) {
-      alert("Đăng nhập thất bại: " + error.response.data.message);
+      // Hiển thị thông báo lỗi
+      const errorMessage =
+        error.response?.data?.message ||
+        "Đăng nhập thất bại. Vui lòng thử lại.";
+      alert(errorMessage);
     }
   };
 

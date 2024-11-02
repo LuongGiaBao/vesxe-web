@@ -13,13 +13,22 @@ const AddDropPointModal = ({
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
-    setDropPoint({ location: "", address: "" }); // Đặt lại các trường nhập liệu
+    setDropPoint({ location: "", address: "", MaDiemTra: "" }); // Đặt lại các trường nhập liệu
     onClose(); // Đóng modal
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      if (!dropPoint.location || !dropPoint.address || !dropPoint.MaDiemTra) {
+        message.error("Vui lòng điền đầy đủ thông tin!");
+        return;
+      }
+      if (!dropPoint.MaDiemTra.startsWith("MDP")) {
+        message.error("Mã điểm trả phải bắt đầu bằng MDP!");
+        return;
+      }
+
       if (dropPoint.id) {
         await onEdit(); // Gọi hàm onEdit nếu đang sửa
       } else {
@@ -34,15 +43,41 @@ const AddDropPointModal = ({
     }
   };
 
+  const handleMaDiemTraChange = (e) => {
+    let value = e.target.value;
+    // Đảm bảo mã luôn bắt đầu bằng MDP
+    if (!value.startsWith("MDP")) {
+      value = "MDP" + value;
+    }
+    setDropPoint({ ...dropPoint, MaDiemTra: value });
+  };
   return (
     <Modal
-      title={dropPoint.id ? "Thêm Điểm Đến" : "Chỉnh Sửa Điểm Đến"}
+      title={dropPoint.MaDiemTra ? "Chỉnh Sửa Điểm Đến" : "Thêm Điểm Đến"}
       visible={isOpen}
       onCancel={resetForm}
       footer={null}
     >
       <Form onFinish={handleSubmit} layout="vertical">
-        <Form.Item label="Location" required>
+        <Form.Item
+          label="Mã Điểm Trả"
+          required
+          rules={[
+            { required: true, message: "Vui lòng nhập mã điểm trả!" },
+            {
+              pattern: /^MDP\d+$/,
+              message: "Mã điểm trả phải bắt đầu bằng MDP và theo sau là số!",
+            },
+          ]}
+        >
+          <Input
+            value={dropPoint.MaDiemTra}
+            onChange={handleMaDiemTraChange}
+            placeholder="Nhập mã điểm trả (VD: MDP01)"
+          />
+        </Form.Item>
+
+        <Form.Item label="Điểm trả" required>
           <Input
             value={dropPoint.location}
             onChange={(e) =>
@@ -51,7 +86,7 @@ const AddDropPointModal = ({
             required
           />
         </Form.Item>
-        <Form.Item label="Address" required>
+        <Form.Item label="Địa chỉ" required>
           <Input
             value={dropPoint.address}
             onChange={(e) =>
@@ -62,7 +97,7 @@ const AddDropPointModal = ({
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading}>
-            {dropPoint.id ? "Cập Nhật" : "Thêm"}
+            {dropPoint.MaDiemTra ? "Cập Nhật" : "Thêm"}
           </Button>
           <Button style={{ marginLeft: "8px" }} onClick={resetForm}>
             Đóng

@@ -22,7 +22,7 @@ export const createTicket = async (ticketData) => {
         ticket_prices: ticketData.priceIds,
       },
     });
-    console.log("Response after creating ticket:", response.data);
+   
     return response.data;
   } catch (error) {
     console.error("Error creating ticket:", error);

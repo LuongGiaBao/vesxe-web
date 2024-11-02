@@ -1,0 +1,16 @@
+.booking-success-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.booking-details {
+  margin: 20px 0;
+}
+
+.booking-details h3 {
+  margin-bottom: 10px;
+}

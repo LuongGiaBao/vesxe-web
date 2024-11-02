@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Button, Select, DatePicker } from "antd";
-import moment from "moment";
-
+// import moment from "moment";
+import moment from "moment-timezone";
 const AddPromotionModal = ({
   isOpen,
   onClose,
@@ -37,8 +37,8 @@ const AddPromotionModal = ({
       description: values.description,
       discountType: values.discountType,
       discountValue: values.discountValue,
-      startDate: values.startDate.toISOString(),
-      endDate: values.endDate.toISOString(),
+      startDate: moment.tz(values.startDate, "Asia/Ho_Chi_Minh").utc().format(),
+      endDate: moment.tz(values.endDate, "Asia/Ho_Chi_Minh").utc().format(),
       status: values.status,
     };
 
@@ -50,7 +50,15 @@ const AddPromotionModal = ({
 
     onClose();
   };
+  const formatDateTime = (time) => {
+    // Giả sử thời gian từ Strapi là UTC
+    const utcTime = moment.utc(time);
 
+    // Chuyển đổi về múi giờ Việt Nam (GMT+7)
+    const localTime = utcTime.tz("Asia/Ho_Chi_Minh");
+
+    return localTime.format("DD/MM/YYYY HH:mm"); // Định dạng 24 giờ
+  };
   return (
     <Modal
       title={isEditing ? "Chỉnh sửa khuyến mãi" : "Thêm khuyến mãi"}
@@ -97,14 +105,26 @@ const AddPromotionModal = ({
           name="startDate"
           rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu!" }]}
         >
-          <DatePicker showTime />
+          <Input
+            type="datetime-local"
+            onChange={(e) => {
+              const formattedTime = formatDateTime(e.target.value);
+              console.log(formattedTime);
+            }}
+          />
         </Form.Item>
         <Form.Item
           label="Ngày Kết Thúc"
           name="endDate"
           rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc!" }]}
         >
-          <DatePicker showTime />
+          <Input
+            type="datetime-local"
+            onChange={(e) => {
+              const formattedTime = formatDateTime(e.target.value);
+              console.log(formattedTime);
+            }}
+          />
         </Form.Item>
         <Form.Item
           label="Trạng Thái"

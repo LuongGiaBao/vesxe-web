@@ -1,164 +1,162 @@
-/* src/assets/SearchResults.css */
-
-/* Toàn bộ trang sắp xếp theo chiều dọc */
-.search-results-page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Đảm bảo chiều cao tối thiểu là toàn màn hình */
-  }
-  
-  /* Container chứa bộ lọc và kết quả tìm kiếm sẽ nằm ngang nhau */
-  .search-content {
-    display: flex;
-    flex-direction: row; /* Đặt bộ lọc và kết quả tìm kiếm theo hàng ngang */
-    gap: 20px;
-    padding: 20px;
-    flex-grow: 1; /* Đảm bảo phần này sẽ giãn ra để chiếm khoảng trống */
-    background-color: #f5f5f5;
-    justify-content: center; /* Canh giữa nội dung */
-  }
-  
-  /* Bộ lọc nằm bên trái */
-  .filters {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    width: 300px; /* Chiều rộng cố định */
-    flex-shrink: 0; /* Đảm bảo bộ lọc không bị co lại */
-    position: sticky; /* Giữ bộ lọc ở vị trí cố định */
-  }
-  
-  /* Các nút lọc */
-  .filters h4 {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    font-weight: bold;
-  }
-  
-  .filters .filter-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .filters .filter-buttons button {
-    padding: 8px 12px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    background-color: white;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .filters .filter-buttons button:hover {
-    background-color: #f89e37;
-    color: white;
-  }
-  
-  /* Kết quả tìm kiếm */
-  /* src/assets/SearchResults.css */
-
-/* Container cho toàn bộ kết quả tìm kiếm */
+/* Container chính */
 .trip-results {
-    display: flex;
+  padding: 2rem;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* Card chuyến đi */
+.trip-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+  padding: 1.5rem;
+}
+
+.trip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Tiêu đề chuyến đi */
+.trip-title {
+  color: #1890ff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+/* Container thông tin địa điểm */
+.location-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.location-label {
+  font-weight: 600;
+  color: #262626;
+  min-width: 120px;
+}
+
+/* Container thời gian */
+.time-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.time-block {
+  text-align: center;
+}
+
+.time-label {
+  font-weight: 600;
+  color: #595959;
+  margin-bottom: 0.5rem;
+}
+
+.time-value {
+  font-size: 1.125rem;
+  color: #262626;
+}
+
+.duration {
+  font-size: 0.875rem;
+  color: #8c8c8c;
+  padding: 0.5rem 1rem;
+  background: #f0f0f0;
+  border-radius: 16px;
+}
+
+/* Thông tin bến xe */
+.station-info {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: #fafafa;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Container thông tin bổ sung */
+.additional-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Giá vé */
+.price-info {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #f5222d;
+}
+
+/* Trạng thái */
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+  font-weight: 600;
+}
+
+/* Nút chọn chuyến */
+.select-button {
+  width: 100%;
+  height: 40px;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.select-button:hover {
+  background-color: #096dd9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .time-container {
     flex-direction: column;
-    gap: 20px;
+    gap: 1rem;
   }
-  
-  /* Mỗi kết quả chuyến xe */
-  .trip {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-  }
-  
-  /* Thông tin về thời gian khởi hành, đến và tổng thời gian */
-  .trip-time-info {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-  }
-  
-  /* Thông tin thời gian khởi hành */
-  .departure-time h3,
-  .arrival-time h3 {
-    font-size: 1.8rem;
-    color: #000;
-    margin-bottom: 5px;
-  }
-  
-  .departure-time p,
-  .arrival-time p {
-    font-size: 1rem;
-    color: #555;
-    margin: 0;
-  }
-  
-  /* Phần thời gian di chuyển */
-  .duration {
-    text-align: center;
-  }
-  
-  .duration p {
-    font-size: 1rem;
-    margin-bottom: 5px;
-  }
-  
-  .duration span {
-    font-size: 0.8rem;
-    color: #888;
-  }
-  
-  /* Chi tiết về ghế trống và giá vé */
-  .trip-details {
-    display: flex;
+
+  .additional-info {
     flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
+    gap: 0.5rem;
   }
-  
-  .trip-details p {
-    font-size: 1rem;
-    margin: 0;
-  }
-  
-  .trip-details p span {
-    font-weight: bold;
-    color: #28a745;
-  }
-  
-  /* Giá tiền */
-  .price {
-    font-size: 1.5rem;
-    color: #f89e37;
-    font-weight: bold;
-  }
-  
-  /* Phần hành động */
-  .trip-actions {
-    display: flex;
-    align-items: center;
-  }
-  
-  .trip-actions button {
-    padding: 10px 20px;
-    background-color: #f89e37;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .trip-actions button:hover {
-    background-color: #d97c28;
-  }
-  
+}
+
+/* Message khi không có kết quả */
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: #8c8c8c;
+  font-size: 1.125rem;
+}

@@ -1,120 +1,109 @@
-import React, { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import React, { useState, useEffect } from "react";
+import { Select, DatePicker, Button, Form, message } from "antd";
+import dayjs from "dayjs";
+import { fetchAllLocations } from "../api/LocationApi";
+import { fetchAllTrips } from "../api/TripApi";
 import { useNavigate } from "react-router-dom";
-import { FetchProvinces, FetchTrips } from "../api/homepage";
-import "../assets/style.css";
+import { apiClient } from "../services/apiservices";
 
-const Banner = () => {
-  const [oneWay, setOneWay] = useState(true);
-  const [departure, setDeparture] = useState("");
-  const [destination, setDestination] = useState("");
-  const [date, setDate] = useState(new Date());
-  const [returnDate, setReturnDate] = useState(null);
-  const [tickets, setTickets] = useState([]);
-  const [error, setError] = useState("");
-  const [departureOptions, setDepartureOptions] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [destinationOptions, setDestinationOptions] = useState([]);
-  const [typeDeparture, setTypeDeparture] = useState();
+const { Option } = Select;
+
+const TripSearchPage = () => {
+  const [locations, setLocations] = useState([]); // Danh sách các địa điểm
+  const [departureId, setDepartureId] = useState(""); // ID địa điểm khởi hành
+  const [arrivalId, setArrivalId] = useState(""); // ID địa điểm đến
+  const [date, setDate] = useState(null); // Ngày đi
+  const [trips, setTrips] = useState([]); // Danh sách chuyến đi
+  const [allTrips, setAllTrips] = useState([]);
   const navigate = useNavigate();
-
   useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        const fetchedProvinces = await FetchProvinces();
-        setProvinces(fetchedProvinces);
-      } catch (error) {
-        console.error("Failed to fetch provinces:", error);
-      }
-    };
-
-    fetchProvinces();
+    loadLocations(); // Gọi hàm để tải địa điểm
+    fetchTrips();
   }, []);
 
-  const handleSearch = async () => {
-    if (!departure || !destination || !date) {
-      setError("Vui lòng nhập đầy đủ điểm đi, điểm đến và ngày đi.");
+  const loadLocations = async () => {
+    try {
+      const locationsData = await fetchAllLocations();
+      setLocations(locationsData.data);
+    } catch (error) {
+      console.error("Error loading locations:", error);
+    }
+  };
+  const fetchTrips = async () => {
+    try {
+      const response = await fetchAllTrips();
+      if (response && Array.isArray(response.data)) {
+        setAllTrips(response.data); // Lưu vào state nếu có dữ liệu hợp lệ
+      } else {
+        console.error("Dữ liệu chuyến đi không hợp lệ:", response);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải chuyến đi:", error);
+    }
+  };
+
+  const onSearch = async () => {
+    if (!departureId || !arrivalId || !date) {
+      message.error("Vui lòng nhập đầy đủ điểm đi và điểm đến.");
       return;
     }
-
-    if (departure === destination) {
-      setError("Điểm đi và điểm đến không được trùng nhau.");
+    if (departureId === arrivalId) {
+      message.error("Điểm đi và điểm đến không được trùng nhau.");
       return;
     }
-
-    setError(""); // Clear any previous errors
 
     try {
-      // Gọi hàm FetchTrips với các bộ lọc đã chọn
-      // Gọi hàm FetchTrips để lấy tất cả các chuyến xe
-      const allTrips = await FetchTrips();
+      const allTrips = await fetchAllTrips(); // Lấy tất cả các chuyến đi
 
-      const filteredTrips = allTrips.filter(
-        (trip) =>
-          trip.departure.id === parseInt(departure) &&
-          trip.destination.id === parseInt(destination) &&
-          trip.seatsLeft >= parseInt(tickets)
-      );
-
-      console.log("Filtered trips:", filteredTrips);
-      if (filteredTrips.length === 0) {
-        setError("Không tìm thấy chuyến xe phù hợp.");
-        return;
+      // Kiểm tra xem allTrips có phải là mảng hay không
+      if (!Array.isArray(allTrips.data)) {
+        throw new Error("Dữ liệu chuyến đi không phải là một mảng.");
       }
-      // Tìm đối tượng departure và destination từ danh sách provinces
-      const departureProvince = provinces.find(
-        (prov) => prov.id === parseInt(departure)
-      );
-      const destinationProvince = provinces.find(
-        (prov) => prov.id === parseInt(destination)
-      );
-      // Điều hướng đến trang kết quả tìm kiếm với các chuyến xe đã lọc
-      navigate("/search-results", {
-        state: {
-          departure: departureProvince,
-          destination: destinationProvince,
-          date,
-          returnDate,
-          tickets,
-          oneWay,
-          trips: filteredTrips,
-        },
+
+      // Lọc các chuyến đi dựa trên địa điểm
+      const filteredTrips = allTrips.data.filter((trip) => {
+        const tripDepartureLocationId =
+          trip.attributes.departure_location_id.data.id;
+        const tripArrivalLocationId =
+          trip.attributes.arrival_location_id.data.id;
+        const tripDate = dayjs(trip.attributes.departureTime).format(
+          "YYYY-MM-DD"
+        );
+
+        return (
+          String(tripDepartureLocationId) === String(departureId) &&
+          String(tripArrivalLocationId) === String(arrivalId) &&
+          tripDate === dayjs(date).format("YYYY-MM-DD")
+        );
       });
+
+      setTrips(filteredTrips); // Cập nhật danh sách chuyến đi
+
+      if (filteredTrips.length > 0) {
+        navigate(`/search-results/${departureId}/${arrivalId}`, {
+          state: { trips: filteredTrips },
+        }); // Chuyển đến SearchResult và truyền dữ liệu
+      } else {
+        message.info("Không tìm thấy chuyến xe nào phù hợp.");
+      }
     } catch (error) {
-      setError("Đã xảy ra lỗi khi tìm chuyến xe.");
+      message.error("Lỗi khi tìm kiếm chuyến xe.");
+      console.error("Lỗi:", error);
     }
-  };
-
-  const handleTripTypeChange = (isOneWay) => {
-    setOneWay(isOneWay);
-    if (isOneWay) {
-      setReturnDate(null); // Clear return date if it's a one-way trip
-    }
-  };
-
-  const handleTicketsChange = (e) => {
-    const value = Math.max(1, Math.min(10, Number(e.target.value)));
-    setTickets(value);
   };
 
   return (
     <div className="banner">
       <div className="search-box">
-       
-
         <div className="search-fields">
           {/* Departure Field */}
           <div className="field">
             <label>Điểm đi</label>
-            <select
-              value={departure}
-              onChange={(e) => setDeparture(e.target.value)}
-            >
+            <select onChange={(e) => setDepartureId(e.target.value)}>
               <option value="">Chọn điểm đi</option>
-              {provinces.map((province, index) => (
-                <option key={index} value={province.name}>
-                  {province.name}
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.attributes.name}
                 </option>
               ))}
             </select>
@@ -123,14 +112,11 @@ const Banner = () => {
           {/* Destination Field */}
           <div className="field">
             <label>Điểm đến</label>
-            <select
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-            >
+            <select onChange={(e) => setArrivalId(e.target.value)}>
               <option value="">Chọn điểm đến</option>
-              {provinces.map((province, index) => (
-                <option key={index} value={province.name}>
-                  {province.name}
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.attributes.name}
                 </option>
               ))}
             </select>
@@ -139,45 +125,17 @@ const Banner = () => {
           {/* Departure Date Picker */}
           <div className="field">
             <label>Ngày đi</label>
-            <DatePicker
-              selected={date}
-              onChange={(selectedDate) => setDate(selectedDate)}
-              dateFormat="dd/MM/yyyy"
-              minDate={new Date()} // Only allow future dates
-              className="date-picker"
-            />
+            <input type="date" onChange={(e) => setDate(e.target.value)} />
           </div>
-
-          {/* Return Date Picker */}
-          {!oneWay && (
-            <div className="field">
-              <label>Ngày về</label>
-              <DatePicker
-                selected={returnDate}
-                onChange={(date) => setReturnDate(date)}
-                dateFormat="dd/MM/yyyy"
-                minDate={date} // Return date must be after departure date
-                className="date-picker"
-              />
-            </div>
-          )}
         </div>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
         {/* Search Button */}
-        <button className="search-button" onClick={handleSearch}>
+        <Button type="primary" className="search-button" onClick={onSearch}>
           Tìm chuyến xe
-        </button>
+        </Button>
       </div>
     </div>
   );
 };
 
-export default Banner;
-
-
-
-
-
-
+export default TripSearchPage;

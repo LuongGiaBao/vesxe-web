@@ -80,18 +80,27 @@ body {
 }
 
 .dropdown-content {
-  display: none; /* Ẩn menu dropdown ban đầu */
-  position: absolute; /* Đặt menu dropdown bên dưới mục chính */
-  top: 170%; /* Đặt menu ở giữa theo chiều dọc của mục dropdown */
-  left: -100px; /* Đặt menu bên trái của mục dropdown (điều chỉnh giá trị này theo chiều rộng menu) */
-  transform: translateY(-50%); /* Căn giữa theo chiều dọc */
+  display: none;
+  position: absolute;
+  top: 100%; /* Đặt menu ngay dưới nút avatar */
+  right: 0; /* Căn phải để menu không bị tràn ra ngoài màn hình */
   background-color: #f9f9f9;
-  min-width: 160px;
+  min-width: 200px; /* Tăng độ rộng tối thiểu */
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  border-radius: 5px;
+  z-index: 1000; /* Tăng z-index để đảm bảo hiển thị trên các phần tử khác */
+  border-radius: 8px;
+  margin-top: 10px; /* Tạo khoảng cách giữa avatar và dropdown */
 }
-
+/* Thêm mũi tên chỉ lên trên dropdown */
+.dropdown-content::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 15px; /* Căn mũi tên với avatar */
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #f9f9f9;
+}
 .dropdown-content a {
   color: black;
   padding: 12px 16px;
@@ -331,7 +340,7 @@ body {
 
 /* Chân trang */
 .footer {
-  background-color: #333;
+
   color: #fff;
   text-align: center;
   padding: 1.5rem 0;

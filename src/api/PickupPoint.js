@@ -17,7 +17,7 @@ export const createPickupPoint = async (pickupPoint) => {
       data: pickupPoint,
     });
     return response.data;
-    console.log("res", response);
+
   } catch (error) {
     console.error("Error creating pickup point:", error);
     throw error;

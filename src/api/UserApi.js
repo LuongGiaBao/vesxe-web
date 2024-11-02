@@ -46,3 +46,27 @@ export const deleteUser = async (id) => {
     throw error;
   }
 };
+
+// Lấy thông tin người dùng đã đăng nhập
+export const getLoggedInUser = async () => {
+  try {
+    // Lấy token từ localStorage hoặc nơi bạn lưu trữ nó
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      return null; // Không có token, người dùng chưa đăng nhập
+    }
+
+    // Gọi API để lấy thông tin người dùng
+    const response = await apiClient.get("/users/me", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching logged in user:", error);
+    return null; // Trả về null nếu có lỗi
+  }
+};

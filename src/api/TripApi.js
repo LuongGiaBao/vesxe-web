@@ -20,15 +20,14 @@ export const createTrip = async (tripData) => {
         ...tripData,
         // travelTime: tripData.travelTime,
         ticket: tripData.ticketId, // Relational ID for ticket
-        pickup_point: tripData.pickupPoint, // Relational ID for pickup point
-        drop_off_point: tripData.dropOffPoint, // Relational ID for drop-off point
+        MaDiemDon: tripData.pickupPoint, // Relational ID for pickup point
+        MaDiemTra: tripData.dropOffPoint, // Relational ID for drop-off point
         departure_location_id: tripData.departureLocationId, // ID cho địa điểm khởi hành
         arrival_location_id: tripData.arrivalLocationId,
       },
     });
 
     // Log response to check populated relations
-    console.log("Created Trip with Relations:", response.data.data);
 
     return response.data.data; // Return the created trip data with populated relations
   } catch (error) {
@@ -44,8 +43,8 @@ export const updateTrip = async (tripId, tripData) => {
       data: {
         ...tripData,
         ticket: tripData.ticketId, // Relational ID for ticket
-        pickup_point: tripData.pickupPoint, // Relational ID for pickup point
-        drop_off_point: tripData.dropOffPoint, //// Thêm ID điểm trả vào cấu trúc đúng
+        MaDiemDon: tripData.pickupPoint, // Relational ID for pickup point
+        MaDiemTra: tripData.dropOffPoint, //// Thêm ID điểm trả vào cấu trúc đúng
         departure_location_id: tripData.departureLocationId, // ID cho địa điểm khởi hành
         arrival_location_id: tripData.arrivalLocationId,
       },
@@ -80,6 +79,27 @@ export const fetchTripDetails = async (tripId) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching trip details:", error);
+    throw error;
+  }
+};
+
+export const fetchTripsByCriteria = async ({
+  departureId,
+  destinationId,
+  date,
+}) => {
+  try {
+    const response = await apiClient.get(`/trips`, {
+      params: {
+        populate: "*",
+        "filters[departure_location_id][id][$eq]": departureId,
+        "filters[arrival_location_id][id][$eq]": destinationId,
+        "filters[departureTime][$gte]": date,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching trips:", error);
     throw error;
   }
 };

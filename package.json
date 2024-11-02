@@ -16,9 +16,12 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.21.5",
     "axios": "^1.7.7",
+    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "moment": "^2.30.1",
+    "moment-timezone": "^0.5.46",
+    "qrcode.react": "^4.1.0",
     "react": "^18.3.1",
     "react-datepicker": "^7.3.0",
     "react-dom": "^18.3.1",
@@ -27,13 +30,16 @@
     "react-slick": "^0.30.2",
     "recharts": "^2.13.0",
     "slick-carousel": "^1.8.1",
+    "styled-components": "^6.1.13",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "start:user": "set PORT=3000 && react-scripts start",
+    "start:admin": "set PORT=3001 && react-scripts start"
   },
   "eslintConfig": {
     "extends": [

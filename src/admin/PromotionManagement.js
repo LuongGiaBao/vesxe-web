@@ -8,7 +8,7 @@ import {
 } from "../api/PromotionApi";
 import AddPromotionModal from "../components/AddPromotionModal";
 import Sidebar from "../components/Sidebar";
-
+import moment from "moment-timezone";
 const PromotionsManagement = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,8 +94,12 @@ const PromotionsManagement = () => {
       description: promotionToView.attributes.description,
       discountType: promotionToView.attributes.discountType,
       discountValue: promotionToView.attributes.discountValue,
-      startDate: promotionToView.attributes.startDate,
-      endDate: promotionToView.attributes.endDate,
+      startDate: moment(promotionToView.attributes.startDate).format(
+        "DD/MM/YYYY HH:mm"
+      ),
+      endDate: moment(promotionToView.attributes.endDate).format(
+        "DD/MM/YYYY HH:mm"
+      ),
       status: promotionToView.attributes.status,
     });
     setDetailModalVisible(true); // Mở modal chi tiết
@@ -108,6 +112,7 @@ const PromotionsManagement = () => {
       key: "promotionName",
     },
     { title: "Mô Tả", dataIndex: "description", key: "description" },
+
     {
       title: "Giá Trị Giảm Giá",
       dataIndex: "discountValue",

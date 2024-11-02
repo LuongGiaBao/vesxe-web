@@ -14,7 +14,7 @@ import { fetchAllPickupPoint } from "../api/PickupPoint";
 import { fetchAllDropPoint } from "../api/DropoffPoint";
 import TripDetailModal from "../components/TripDetailModal";
 import { fetchAllLocations } from "../api/LocationApi";
-
+import moment from "moment-timezone";
 const TripTable = () => {
   const [trips, setTrips] = useState([]);
   const [editingTrip, setEditingTrip] = useState(null);
@@ -42,7 +42,6 @@ const TripTable = () => {
   const loadTrips = async () => {
     try {
       const response = await fetchAllTrips();
-      console.log("responson trip", response);
 
       setTrips(response.data);
     } catch (error) {
@@ -80,7 +79,6 @@ const TripTable = () => {
   const loadLocation = async () => {
     try {
       const response = await fetchAllLocations();
-      console.log("res", response);
 
       setLocations(response.data);
     } catch (error) {
@@ -150,38 +148,39 @@ const TripTable = () => {
     setSelectedTrip(null);
   };
 
+  const formatMaTuyen = (maTuyen) => {
+    if (maTuyen.startsWith("MTMT")) {
+      return "MT" + maTuyen.substring(4);
+    }
+    return maTuyen;
+  };
+  const formatExpectedTime = (expectedTime) => {
+    const time = moment(expectedTime, "HH:mm:ss.SSS");
+    const hours = time.hours(); // Lấy giờ
+    const minutes = time.minutes(); // Lấy phút
+    return `${hours} giờ ${minutes} phút`; // Trả về chuỗi theo định dạng mong muốn
+  };
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
+      title: "ID", // Thay đổi từ "ID" thành "ID"
+      dataIndex: ["id"], // Đây là nơi bạn lấy ID từ dữ liệu
       key: "id",
     },
     {
-      title: "ID Vé",
-      dataIndex: ["attributes", "ticket", "data", "id"],
-      key: "ticketId",
+      title: "Mã Tuyến", // Thay đổi từ "ID" thành "Mã Tuyến"
+      dataIndex: ["attributes", "MaTuyen"], // Thay đổi từ "id" thành ["attributes", "MaTuyen"]
+      key: "matuyen",
+      render: (text) => <span>{formatMaTuyen(text)}</span>,
     },
     {
       title: "Điểm Đón",
-      dataIndex: [
-        "attributes",
-        "pickup_point",
-        "data",
-        "attributes",
-        "location",
-      ],
-      key: "pickupPoint",
+      dataIndex: ["attributes", "MaDiemDon", "data", "attributes", "location"],
+      key: "MaDiemDon",
     },
     {
       title: "Điểm Trả",
-      dataIndex: [
-        "attributes",
-        "drop_off_point",
-        "data",
-        "attributes",
-        "location",
-      ],
-      key: "dropOffPoint",
+      dataIndex: ["attributes", "MaDiemTra", "data", "attributes", "location"],
+      key: "MaDiemTra",
     },
     {
       title: "Điểm Khởi Hành",
@@ -206,41 +205,15 @@ const TripTable = () => {
       key: "arrivalLocation",
     },
     {
-      title: "Khoảng Cách",
-      dataIndex: ["attributes", "distance"],
-      key: "distance",
+      title: "Tổng Số Ghế",
+      dataIndex: ["attributes", "totalSeats"],
+      key: "totalSeats",
     },
     {
-      title: "Thời Gian Khởi Hành",
-      dataIndex: ["attributes", "departureTime"],
-      key: "departureTime",
-      render: (text) => <span>{formatVietnamTime(text)}</span>,
-    },
-    {
-      title: "Thời Gian Đến",
-      dataIndex: ["attributes", "arrivalTime"],
-      key: "arrivalTime",
-      render: (text) => <span>{formatVietnamTime(text)}</span>,
-    },
-    {
-      title: "Thời Gian Di Chuyển",
-      dataIndex: ["attributes", "travelTime"], // Thêm dòng này
-      key: "travelTime",
-      render: (_, trip) => {
-        const departureTime = new Date(trip.attributes.departureTime);
-        const arrivalTime = new Date(trip.attributes.arrivalTime);
-        const travelTime = Math.abs(arrivalTime - departureTime); // Tính khoảng cách thời gian
-
-        const days = Math.floor(travelTime / (1000 * 60 * 60 * 24)); // Số ngày
-        const hours = Math.floor(
-          (travelTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-        ); // Số giờ
-        const minutes = Math.floor(
-          (travelTime % (1000 * 60 * 60)) / (1000 * 60)
-        ); // Số phút
-
-        return `${days} ngày, ${hours} giờ ${minutes} phút`;
-      },
+      title: "Thời Gian Dự kiến",
+      dataIndex: ["attributes", "ExpectedTime"], // Thêm dòng này
+      key: "ExpectedTime",
+      render: (text) => <span>{formatExpectedTime(text)}</span>,
     },
     {
       title: "Trạng Thái",
@@ -265,7 +238,7 @@ const TripTable = () => {
   ];
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard ">
       <Sidebar />
       <div className="admin-content">
         <h2>Danh Sách Chuyến Đi</h2>
@@ -289,6 +262,7 @@ const TripTable = () => {
           pickupPoints={pickupPoints}
           dropOffPoints={dropOffPoints}
           locations={locations}
+          existingTrips={trips}
         />
         <TripDetailModal
           visible={isDetailModalVisible}

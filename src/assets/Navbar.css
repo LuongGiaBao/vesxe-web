@@ -1,0 +1,121 @@
+/* Style cho dropdown container */
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Style cho nút avatar */
+.dropbtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.dropbtn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Style cho avatar */
+.user-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-icon {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* Style cho dropdown content */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background-color: #ffffff;
+  min-width: 220px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+/* Style cho user info section */
+.user-info-preview {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.user-name {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Style cho dropdown items */
+.dropdown-content a {
+  color: #333;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: #f5f5f5;
+}
+
+/* Divider style */
+.dropdown-divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 0;
+}
+
+/* Show class để hiển thị dropdown */
+.dropdown-content.show {
+  display: block;
+}
+
+/* Style cho last item trong dropdown */
+.dropdown-content a:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+/* Style cho auth link khi chưa đăng nhập */
+.auth-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: #333;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.auth-link:hover {
+  background-color: #f5f5f5;
+}

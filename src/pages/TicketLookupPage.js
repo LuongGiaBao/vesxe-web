@@ -15,7 +15,7 @@ const TicketLookupPage = () => {
       return;
     }
     // Thực hiện tra cứu vé (ví dụ gọi API)
-    console.log('Tra cứu thông tin vé:', { phone, ticketCode });
+   
     setError(''); // Xóa lỗi khi tra cứu thành công
   };
 

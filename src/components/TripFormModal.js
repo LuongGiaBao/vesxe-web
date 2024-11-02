@@ -1,5 +1,6 @@
-import React from "react";
-import { Modal, Form, Input, Select, message } from "antd";
+import React, { useState } from "react";
+import { Modal, Form, Input, Select, message, TimePicker } from "antd";
+import moment from "moment-timezone";
 
 const TripFormModal = ({
   visible,
@@ -11,6 +12,7 @@ const TripFormModal = ({
   pickupPoints,
   dropOffPoints,
   locations,
+  existingTrips,
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
@@ -18,52 +20,76 @@ const TripFormModal = ({
 
   React.useEffect(() => {
     if (trip) {
+      const expectedTime = trip.attributes?.ExpectedTime
+        ? moment(trip.attributes.ExpectedTime, "HH:mm:ss")
+        : null;
+      const numericPart = trip.attributes?.MaTuyen?.substring(2) || "";
       form.setFieldsValue({
-        distance: trip.attributes?.distance || "",
+        MaTuyen: trip.attributes?.MaTuyen || "MT",
+        totalSeats: 34, // Ép cứng 34 ghế
         travelTime: trip.attributes?.travelTime || "",
-        departureTime: trip.attributes?.departureTime || "",
-        arrivalTime: trip.attributes?.arrivalTime || "",
         status: trip.attributes?.status || "",
         ticketId: trip.attributes?.ticket?.data?.id || "",
         ticketPrice:
           trip.attributes?.ticket_price?.data?.attributes.price || "",
-        seatNumber: trip.attributes?.seat?.data?.attributes.seatNumber || "",
-        pickupPoint: trip.attributes?.pickup_point?.data?.id || "",
-        dropOffPoint: trip.attributes?.drop_off_point?.data?.id || "",
-        departureLocationId: trip.attributes.departure_location_id.data.id,
-        arrivalLocationId: trip.attributes.arrival_location_id.data.id,
+        ExpectedTime: expectedTime,
+        pickupPoint: trip.attributes?.MaDiemDon?.data?.id || "",
+        dropOffPoint: trip.attributes?.MaDiemTra?.data?.id || "",
+        departureLocationId: trip.attributes.departure_location_id?.data?.id,
+        arrivalLocationId: trip.attributes.arrival_location_id?.data?.id,
       });
     } else {
       form.resetFields();
+      form.setFieldsValue({
+        totalSeats: 34, // Ép cứng 34 ghế cho trường hợp tạo mới
+        MaTuyen: "MT",
+        status: "Ngưng hoạt động",
+      });
     }
   }, [trip, form]);
 
-  const calculateTravelTime = (departureTime, arrivalTime) => {
-    const departure = new Date(departureTime);
-    const arrival = new Date(arrivalTime);
-    const travelTimeInMs = Math.abs(arrival - departure);
-
-    const hours = Math.floor(travelTimeInMs / (1000 * 60 * 60));
-    const minutes = Math.floor(
-      (travelTimeInMs % (1000 * 60 * 60)) / (1000 * 60)
-    );
-
-    return `${hours} giờ ${minutes} phút`;
+  const formatMaTuyen = (maTuyen) => {
+    if (maTuyen.startsWith("MT")) {
+      return "MT" + maTuyen.substring(2);
+    }
+    return maTuyen;
   };
-
   const handleSubmit = async () => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      values.travelTime = calculateTravelTime(
-        values.departureTime,
-        values.arrivalTime
-      );
+      values.totalSeats = 34;
+
+      values.MaTuyen = formatMaTuyen(values.MaTuyen);
+      if (values.ExpectedTime) {
+        values.ExpectedTime = values.ExpectedTime.format("HH:mm:ss");
+      }
       // Kiểm tra xem điểm khởi hành và điểm đến có trùng nhau không
       if (values.departureLocationId === values.arrivalLocationId) {
         message.error("Điểm khởi hành và điểm đến không được trùng nhau!");
         return; // Dừng hàm nếu có lỗi
       }
+
+      // Kiểm tra trạng thái hoạt động
+      if (values.status === "Hoạt động") {
+        const duplicateTrip = existingTrips.find(
+          (existingTrip) =>
+            existingTrip.id !== trip?.id && // Bỏ qua chuyến hiện tại đang edit
+            existingTrip.attributes.status === "Hoạt động" &&
+            existingTrip.attributes.departure_location_id.data.id ===
+              values.departureLocationId &&
+            existingTrip.attributes.arrival_location_id.data.id ===
+              values.arrivalLocationId
+        );
+
+        if (duplicateTrip) {
+          message.error(
+            "Đã có một chuyến xe đang hoạt động trên tuyến đường này!"
+          );
+          return;
+        }
+      }
+
       if (trip?.id) {
         await onEdit(values, trip.id);
       } else {
@@ -79,15 +105,57 @@ const TripFormModal = ({
     }
   };
 
+  const handleMaTuyenChange = (e) => {
+    let value = e.target.value;
+
+    // Nếu mã tuyến bắt đầu bằng "MTMT", chỉ giữ lại một "MT"
+    if (value.startsWith("MTMT")) {
+      value = "MT" + value.substring(4);
+    }
+    // Nếu mã tuyến không bắt đầu bằng "MT", thêm "MT" vào đầu
+    else if (!value.startsWith("MT")) {
+      value = "MT" + value;
+    }
+
+    // Cập nhật giá trị trong form
+    form.setFieldsValue({ MaTuyen: value });
+  };
   return (
     <Modal
-      title={trip ? "Cập Nhật Chuyến Đi" : "Tạo Chuyến Đi Mới"}
+      title={
+        trip
+          ? `Cập Nhật Chuyến Đi: ${trip.attributes.MaTuyen}`
+          : "Tạo Chuyến Đi Mới"
+      }
       visible={visible}
       onOk={handleSubmit}
       confirmLoading={loading}
       onCancel={onCancel}
+      centered={true}
     >
       <Form form={form} layout="vertical">
+        <Form.Item
+          name="MaTuyen"
+          label="Mã Tuyến"
+          initialValue="MT"
+          rules={[
+            { required: true, message: "Vui lòng nhập mã tuyến!" },
+            {
+              pattern: /^MT\d+$/,
+              message: "Mã tuyến phải bắt đầu bằng MT và theo sau là số!",
+            },
+            {
+              min: 3,
+              message: "Vui lòng nhập số sau MT",
+            },
+          ]}
+        >
+          <Input
+            value={form.getFieldValue("MaTuyen")}
+            onChange={handleMaTuyenChange}
+            placeholder="Nhập mã tuyến"
+          />
+        </Form.Item>
         <Form.Item
           name="departureLocationId"
           label="Điểm Khởi Hành"
@@ -141,55 +209,6 @@ const TripFormModal = ({
             ))}
           </Select>
         </Form.Item>
-
-        <Form.Item
-          name="distance"
-          label="Khoảng Cách"
-          rules={[{ required: true, message: "Vui lòng nhập khoảng cách!" }]}
-        >
-          <Input placeholder="Nhập khoảng cách" />
-        </Form.Item>
-
-        <Form.Item
-          name="departureTime"
-          label="Thời Gian Khởi Hành"
-          rules={[
-            { required: true, message: "Vui lòng nhập thời gian khởi hành!" },
-          ]}
-        >
-          <Input type="datetime-local" />
-        </Form.Item>
-        <Form.Item
-          name="arrivalTime"
-          label="Thời Gian Đến"
-          rules={[{ required: true, message: "Vui lòng nhập thời gian đến!" }]}
-        >
-          <Input type="datetime-local" />
-        </Form.Item>
-        <Form.Item
-          name="ticketId"
-          label="Vé"
-          rules={[{ required: true, message: "Vui lòng chọn vé!" }]}
-        >
-          <Select placeholder="Chọn vé">
-            {tickets.map((ticket) => (
-              <Option key={ticket.id} value={ticket.id}>
-                {`Vé ID: ${ticket.id} - ${
-                  ticket.attributes?.status || "Unknown Status"
-                }`}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          name="seatNumber"
-          label="Số Ghế"
-          rules={[{ required: true, message: "Vui lòng nhập số ghế!" }]} // Thêm rule nếu cần
-        >
-          <Input placeholder="Nhập số ghế" />
-        </Form.Item>
-
         <Form.Item
           name="pickupPoint"
           label="Điểm Đón"
@@ -217,15 +236,34 @@ const TripFormModal = ({
           </Select>
         </Form.Item>
         <Form.Item
+          name="ExpectedTime"
+          label="Thời Gian Dự Kiến"
+          rules={[
+            { required: true, message: "Vui lòng nhập thời gian dự kiến!" },
+          ]}
+        >
+          <TimePicker
+            format="HH:mm:ss"
+            placeholder="Chọn thời gian dự kiến"
+            style={{ width: "100%" }}
+          />
+        </Form.Item>
+        <Form.Item
           name="status"
           label="Trạng Thái"
-          rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+          rules={[{ required: true }]}
+          initialValue="Ngưng hoạt động"
         >
-          <Select>
-            <Option value="HOẠT ĐỘNG">HOẠT ĐỘNG</Option>
-            <Option value="HẾT HẠN">HẾT HẠN</Option>
-            <Option value="KHÔNG HOẠT ĐỘNG">KHÔNG HOẠT ĐỘNG</Option>
-            <Option value="HỦY">HỦY</Option>
+          <Select placeholder="Chọn trạng thái">
+            <Select.Option
+              value="Hoạt động"
+              disabled={!trip} // Disable nếu đang tạo mới (trip === null)
+            >
+              Hoạt động
+            </Select.Option>
+            <Select.Option value="Ngưng hoạt động">
+              Ngưng hoạt động
+            </Select.Option>
           </Select>
         </Form.Item>
       </Form>
