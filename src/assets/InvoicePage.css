@@ -1,0 +1,89 @@
+/* InvoicePage.css */
+.invoice-page {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.invoice-container {
+  background: white;
+  padding: 40px;
+  margin-bottom: 20px;
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.company-info h1 {
+  font-size: 24px;
+  color: #1890ff;
+  margin-bottom: 10px;
+}
+
+.invoice-title {
+  text-align: right;
+}
+
+.invoice-title h2 {
+  color: #1890ff;
+  margin-bottom: 10px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.payment-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.payment-table th,
+.payment-table td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #f0f0f0;
+}
+
+.payment-table th {
+  background-color: #fafafa;
+}
+
+.payment-table tfoot td {
+  font-weight: bold;
+  background-color: #f7f7f7;
+}
+
+.invoice-footer {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.terms {
+  width: 50%;
+  margin-right: 20px;
+}
+
+.signature-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.customer-signature,
+.company-signature {
+  width: 40%;
+  margin-right: 20px;
+}
+
+.print-button {
+  margin-top: 20px;
+}

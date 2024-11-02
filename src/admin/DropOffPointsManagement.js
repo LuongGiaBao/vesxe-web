@@ -53,8 +53,10 @@ const DropPointsManagement = () => {
     const point = dropPoints.find((p) => p.id === id);
     setEditingPoint(point);
     setNewDropPoint({
+      id: point.id,
       location: point.attributes.location,
       address: point.attributes.address,
+      MaDiemTra: point.attributes.MaDiemTra,
     });
     setIsModalOpen(true);
   };
@@ -65,6 +67,7 @@ const DropPointsManagement = () => {
     const updatedData = {
       location: newDropPoint.location,
       address: newDropPoint.address,
+      MaDiemTra: newDropPoint.MaDiemTra,
     };
 
     try {
@@ -110,32 +113,22 @@ const DropPointsManagement = () => {
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
     {
-      title: "Location",
+      title: "Mã Điểm trả",
+      dataIndex: "MaDiemTra",
+      render: (text) => text,
+    },
+    {
+      title: "Điểm trả",
       dataIndex: "location",
       render: (text) => text,
     },
     {
-      title: "Address",
+      title: "Địa chỉ",
       dataIndex: "address",
       render: (text) => text,
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (createdAt) => new Date(createdAt).toLocaleString(),
-    },
-    {
-      title: "Updated At",
-      dataIndex: "updatedAt",
-      render: (updatedAt) => new Date(updatedAt).toLocaleString(),
-    },
-    {
-      title: "Published At",
-      dataIndex: "publishedAt",
-      render: (publishedAt) => new Date(publishedAt).toLocaleString(),
-    },
-    {
-      title: "Action",
+      title: "Hành động",
       key: "action",
       render: (_, record) => (
         <>
@@ -159,7 +152,11 @@ const DropPointsManagement = () => {
       <Sidebar />
       <div className="admin-content">
         <h1>Quản lý điểm trả</h1>
-        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+        <Button
+          type="primary"
+          style={{ marginBottom: 20 }}
+          onClick={() => setIsModalOpen(true)}
+        >
           Thêm Điểm Trả
         </Button>
         <Table
@@ -167,9 +164,7 @@ const DropPointsManagement = () => {
             id: point.id,
             location: point.attributes.location,
             address: point.attributes.address,
-            createdAt: point.attributes.createdAt,
-            updatedAt: point.attributes.updatedAt,
-            publishedAt: point.attributes.publishedAt,
+            MaDiemTra: point.attributes.MaDiemTra,
           }))}
           columns={columns}
           rowKey="id"

@@ -1,0 +1,43 @@
+/* src/assets/MyTicketsPage.css */
+.my-tickets-page {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  margin-right: 20px;
+}
+
+.ticket-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.trip-details,
+.time-details,
+.seat-details,
+.amount-details,
+.status-details {
+  margin-bottom: 8px;
+}
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (max-width: 576px) {
+  .ticket-info {
+    grid-template-columns: 1fr;
+  }
+}

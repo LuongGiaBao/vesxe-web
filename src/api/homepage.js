@@ -3,7 +3,7 @@ export const FetchData = async () => {
   try {
     const response = await apiClient.get("/api/provinces");
 
-    console.log("res", response);
+    
 
     // Map the response data to extract necessary fields like 'name' and others if needed
     const provinces = response.data.data.map((province) => ({
@@ -83,7 +83,7 @@ export const FetchTrips = async (
         },
       },
     });
-    console.log("res", response);
+
 
     // Map lại dữ liệu response theo cấu trúc mong muốn
     const trips = response.data.data.map((trip) => ({
@@ -121,95 +121,6 @@ export const FetchTrips = async (
     throw error;
   }
 };
-
-// export const FetchTrips = async (departureId, destinationId, seatsLeft) => {
-//   console.log("Fetching trips with:", {
-//     departureId,
-//     destinationId,
-//     seatsLeft,
-//   });
-//   try {
-//     const response = await apiClient.get("/api/bus-schedules", {
-//       params: {
-//         populate: ["departure", "destination"], // Populate cả departure và destination
-//         filters: {
-//           departure: {
-//             id: departureId, // Lọc theo departure id
-//           },
-//           destination: {
-//             id: destinationId, // Lọc theo destination id
-//           },
-//           seatsLeft: {
-//             $gte: seatsLeft, // Lọc theo số lượng ghế còn trống
-//           },
-//         },
-//       },
-//     });
-//     console.log("API Response:", response.data);
-
-//     // Map lại dữ liệu response theo cấu trúc mong muốn
-//     const trips = response.data.data.map((trip) => ({
-//       id: trip.documentId, // Sử dụng documentId làm id cho chuyến xe
-//       departureTime: trip.departureTime,
-//       arrivalTime: trip.arrivalTime,
-//       seatsLeft: trip.seatsLeft,
-//       price: trip.price,
-//       type: trip.type,
-//       seatClass: trip.seatClass,
-//       departure: {
-//         id: trip.departure.id, // Sử dụng id của điểm đi
-//         name: trip.departure.name.trim(),
-//       },
-//       destination: {
-//         id: trip.destination.id, // Sử dụng id của điểm đến
-//         name: trip.destination.name.trim(),
-//       },
-//     }));
-//     console.log("trip", trips);
-//     return trips;
-//   } catch (error) {
-//     console.error("Error fetching trips:", error);
-//     throw error;
-//   }
-// };
-
-// export const FetchTrips = async (documentId, seatsLeft, name) => {
-//   try {
-//     const response = await apiClient.get("/api/bus-schedules", {
-//       params: {
-//         populate: ["departure", "destination"],
-//         filters: {
-//           departure: name,
-//           destination: name,
-//           seatsLeft: {
-//             $gte: seatsLeft,
-//           },
-//         },
-//       },
-//     });
-
-//     // Kiểm tra xem Strapi đang sử dụng format dữ liệu nào
-//     // Dựa trên dữ liệu bạn đã cung cấp, có vẻ như departure và destination là các đối tượng trực tiếp
-//     // Vì vậy, chúng ta sẽ điều chỉnh hàm map accordingly
-
-//     const trips = response.data.data.map((trip) => ({
-//       id: trip.documentId,
-//       departureTime: trip.departureTime,
-//       arrivalTime: trip.arrivalTime,
-//       seatsLeft: trip.seatsLeft,
-//       price: trip.price,
-//       type: trip.type,
-//       seatClass: trip.seatClass,
-//       departure: trip.departure.name.trim(),
-//       destination: trip.destination.name.trim(),
-//     }));
-
-//     return trips;
-//   } catch (error) {
-//     console.error("Error fetching trips:", error);
-//     throw error;
-//   }
-// };
 
 // Hàm lấy danh sách bến xe dựa trên tỉnh/thành phố
 export const fetchBusStations = async (provinceId) => {

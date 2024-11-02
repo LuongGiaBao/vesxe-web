@@ -102,7 +102,7 @@ const TicketsManagement = () => {
   };
 
   const openEditModal = (ticket) => {
-    console.log("Dữ liệu vé đang chỉnh sửa:", ticket);
+   
     setEditingTicket(ticket); // Set the ticket being edited
     setModalVisible(true); // Open the edit modal
   };

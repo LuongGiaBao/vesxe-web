@@ -1,89 +1,122 @@
 import React from "react";
-import { Modal } from "antd";
-import { formatVietnamTime } from "../utils/timeUtils";
+import { Modal, Descriptions, Tag } from "antd";
+import moment from "moment";
 
 const TripDetailModal = ({ visible, onCancel, trip }) => {
+  if (!trip) return null;
+
+  const {
+    id,
+    attributes: {
+      status,
+      totalSeats,
+      ExpectedTime,
+      MaTuyen,
+      seats,
+      MaDiemDon,
+      MaDiemTra,
+      departure_location_id,
+      arrival_location_id,
+    } = {},
+  } = trip;
+
+  const formatTime = (time) => {
+    if (!time) return "N/A";
+    const momentTime = moment(time, "HH:mm:ss.SSS");
+    const hours = momentTime.hours();
+    const minutes = momentTime.minutes();
+    return `${hours} giờ ${minutes} phút`;
+  };
+
   return (
     <Modal
       title="Chi Tiết Chuyến Đi"
       visible={visible}
       onCancel={onCancel}
       footer={null}
-      width={600}
+      width={700}
       centered={true}
-      // style={{ top: '50%', transform: 'translateY(-50%)' }}
     >
-      {trip && (
-        <div>
-          <p>
-            <strong>ID Chuyến Đi:</strong> {trip.id}
-          </p>
-          <p>
-            <strong>ID Vé:</strong> {trip.attributes?.ticket?.data?.id || "N/A"}
-          </p>
-          <p>
-            <strong>Điểm Đón:</strong>{" "}
-            {trip.attributes?.pickup_point?.data?.attributes?.location || "N/A"}
-          </p>
-          <p>
-            <strong>Điểm Trả:</strong>{" "}
-            {trip.attributes?.drop_off_point?.data?.attributes?.location ||
-              "N/A"}
-          </p>
-          <p>
-            <strong>Điểm Khởi Hành:</strong>{" "}
-            {trip.attributes?.departure_location_id?.data?.attributes?.name ||
-              "N/A"}
-          </p>
-          <p>
-            <strong>Điểm Đến:</strong>{" "}
-            {trip.attributes?.arrival_location_id?.data?.attributes?.name ||
-              "N/A"}
-          </p>
-          <p>
-            <strong>Số ghế:</strong>{" "}
-            {trip.attributes?.seat?.data?.attributes?.seatNumber || "N/A"}
-          </p>
-          <p>
-            <strong>Khoảng Cách:</strong> {trip.attributes?.distance || "N/A"}
-          </p>
-          <p>
-            <strong>Thời Gian Di Chuyển:</strong>{" "}
-            {trip.attributes?.departureTime && trip.attributes?.arrivalTime
-              ? (() => {
-                  const departureTime = new Date(trip.attributes.departureTime);
-                  const arrivalTime = new Date(trip.attributes.arrivalTime);
-                  const travelTime = Math.abs(arrivalTime - departureTime); // Tính khoảng cách thời gian
-
-                  const days = Math.floor(travelTime / (1000 * 60 * 60 * 24)); // Số ngày
-                  const hours = Math.floor(
-                    (travelTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-                  ); // Số giờ
-                  const minutes = Math.floor(
-                    (travelTime % (1000 * 60 * 60)) / (1000 * 60)
-                  ); // Số phút
-
-                  return `${days} ngày, ${hours} giờ ${minutes} phút`;
-                })()
-              : "N/A"}
-          </p>
-          <p>
-            <strong>Thời Gian Khởi Hành:</strong>{" "}
-            {trip.attributes?.departureTime
-              ? formatVietnamTime(trip.attributes.departureTime)
-              : "N/A"}
-          </p>
-          <p>
-            <strong>Thời Gian Đến:</strong>{" "}
-            {trip.attributes?.arrivalTime
-              ? formatVietnamTime(trip.attributes.arrivalTime)
-              : "N/A"}
-          </p>
-          <p>
-            <strong>Trạng Thái:</strong> {trip.attributes?.status || "N/A"}
-          </p>
-        </div>
-      )}
+      <Descriptions bordered column={1}>
+        <Descriptions.Item label="Mã Tuyến">
+          {MaTuyen || "N/A"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Trạng Thái">
+          <Tag color={status === "Hoạt động" ? "green" : "red"}>
+            {status || "N/A"}
+          </Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="Điểm Đón">
+          {MaDiemDon?.data ? (
+            <>
+              <div>
+                <strong>Địa điểm:</strong>{" "}
+                {MaDiemDon.data.attributes.location}
+              </div>
+              <div>
+                <strong>Địa chỉ:</strong> {MaDiemDon.data.attributes.address}
+              </div>
+            </>
+          ) : (
+            "N/A"
+          )}
+        </Descriptions.Item>
+        <Descriptions.Item label="Điểm Trả">
+          {MaDiemTra?.data ? (
+            <>
+              <div>
+                <strong>Địa điểm:</strong>{" "}
+                {MaDiemTra.data.attributes.location}
+              </div>
+              <div>
+                <strong>Địa chỉ:</strong>{" "}
+                {MaDiemTra.data.attributes.address}
+              </div>
+            </>
+          ) : (
+            "N/A"
+          )}
+        </Descriptions.Item>
+        <Descriptions.Item label="Điểm Khởi Hành">
+          {departure_location_id?.data ? (
+            <>
+              <div>
+                <strong>Tên:</strong>{" "}
+                {departure_location_id.data.attributes.name}
+              </div>
+              <div>
+                <strong>Mô tả:</strong>{" "}
+                {departure_location_id.data.attributes.description ||
+                  "Không có mô tả"}
+              </div>
+            </>
+          ) : (
+            "N/A"
+          )}
+        </Descriptions.Item>
+        <Descriptions.Item label="Điểm Đến">
+          {arrival_location_id?.data ? (
+            <>
+              <div>
+                <strong>Tên:</strong> {arrival_location_id.data.attributes.name}
+              </div>
+              <div>
+                <strong>Mô tả:</strong>{" "}
+                {arrival_location_id.data.attributes.description ||
+                  "Không có mô tả"}
+              </div>
+            </>
+          ) : (
+            "N/A"
+          )}
+        </Descriptions.Item>
+        <Descriptions.Item label="Tổng Số Ghế">
+          {totalSeats || "N/A"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Thời Gian Dự Kiến">
+          {formatTime(ExpectedTime)}
+        </Descriptions.Item>
+      </Descriptions>
     </Modal>
   );
 };

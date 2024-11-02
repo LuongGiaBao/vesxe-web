@@ -7,7 +7,7 @@ import {
   updatePickupPoint,
 } from "../api/PickupPoint";
 import { Button, Modal, Table, message } from "antd";
-import AddPickupPointModal from "../components/Modal";
+import AddPickupPointModal from "../components/AddPickupPointModal";
 
 const PickupPointsManagement = () => {
   const [pickupPoints, setPickupPoints] = useState([]);
@@ -17,6 +17,7 @@ const PickupPointsManagement = () => {
   const [newPickupPoint, setNewPickupPoint] = useState({
     location: "",
     address: "",
+    MaDiemDon: "",
   });
   const [editingPoint, setEditingPoint] = useState(null);
 
@@ -53,6 +54,7 @@ const PickupPointsManagement = () => {
     setNewPickupPoint({
       location: point.attributes.location,
       address: point.attributes.address,
+      MaDiemDon: point.attributes.MaDiemDon,
     });
     setIsModalOpen(true);
   };
@@ -63,6 +65,7 @@ const PickupPointsManagement = () => {
     const updatedData = {
       location: newPickupPoint.location,
       address: newPickupPoint.address,
+      MaDiemDon: newPickupPoint.MaDiemDon,
     };
 
     try {
@@ -108,32 +111,23 @@ const PickupPointsManagement = () => {
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
     {
-      title: "Location",
+      title: "Mã Điểm đón",
+      dataIndex: "MaDiemDon",
+      render: (text) => text,
+    },
+    {
+      title: "Điểm đón",
       dataIndex: "location",
       render: (text) => text,
     },
     {
-      title: "Address",
+      title: "Địa chỉ",
       dataIndex: "address",
       render: (text) => text,
     },
+
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (createdAt) => new Date(createdAt).toLocaleString(),
-    },
-    {
-      title: "Updated At",
-      dataIndex: "updatedAt",
-      render: (updatedAt) => new Date(updatedAt).toLocaleString(),
-    },
-    {
-      title: "Published At",
-      dataIndex: "publishedAt",
-      render: (publishedAt) => new Date(publishedAt).toLocaleString(),
-    },
-    {
-      title: "Action",
+      title: "Hành động",
       key: "action",
       render: (_, record) => (
         <>
@@ -157,7 +151,11 @@ const PickupPointsManagement = () => {
       <Sidebar />
       <div className="admin-content">
         <h1>Quản lý điểm đón</h1>
-        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+        <Button
+          type="primary"
+          style={{ marginBottom: 20 }}
+          onClick={() => setIsModalOpen(true)}
+        >
           Thêm Điểm Đón
         </Button>
         <Table
@@ -165,9 +163,7 @@ const PickupPointsManagement = () => {
             id: point.id,
             location: point.attributes.location,
             address: point.attributes.address,
-            createdAt: point.attributes.createdAt,
-            updatedAt: point.attributes.updatedAt,
-            publishedAt: point.attributes.publishedAt,
+            MaDiemDon: point.attributes.MaDiemDon,
           }))}
           columns={columns}
           rowKey="id"
