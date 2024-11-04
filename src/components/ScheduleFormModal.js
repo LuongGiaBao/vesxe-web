@@ -1,14 +1,65 @@
 // src/components/ScheduleFormModal.js
 import React, { useEffect, useState } from "react";
-import { Modal, Form, Input, DatePicker, TimePicker, Select } from "antd";
+import { Modal, Form, Input, DatePicker, TimePicker, Select, message } from "antd";
 import moment from "moment";
 import { fetchAllBuses } from "../api/BusesApi";
 import { fetchAllTrips } from "../api/TripApi";
+import { fetchAllSchedules } from "../api/ScheduleApi";
 const { Option } = Select;
 const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
   const [form] = Form.useForm();
   const [trips, setTrips] = useState([]); // State cho danh sách tuyến
   const [buses, setBuses] = useState([]);
+  const [selectedTrip, setSelectedTrip] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [existingSchedules, setExistingSchedules] = useState([]);
+
+  useEffect(() => {
+    if (visible) {
+      loadExistingSchedules();
+    }
+  }, [visible]);
+
+  const loadExistingSchedules = async () => {
+    try {
+      const response = await fetchAllSchedules();
+      setExistingSchedules(response.data);
+    } catch (error) {
+      console.error("Error loading schedules:", error);
+    }
+  };
+
+  // Hàm kiểm tra mã lịch trình đã tồn tại
+  const checkScheduleIdExists = (scheduleId) => {
+    return existingSchedules.some((schedule) => {
+      // Nếu đang trong chế độ chỉnh sửa, bỏ qua ID của chính nó
+      if (initialValues && schedule.id === initialValues.id) {
+        return false;
+      }
+      return schedule.attributes.IDSchedule === scheduleId;
+    });
+  };
+
+  // Hàm validate mã lịch trình
+  const validateScheduleId = async (_, value) => {
+    if (!value) {
+      return Promise.reject(new Error("Vui lòng nhập mã lịch trình!"));
+    }
+
+    // Kiểm tra định dạng
+    if (!/^ML\d{2}$/.test(value)) {
+      return Promise.reject(
+        new Error("Mã lịch trình phải có định dạng ML + 2 số!")
+      );
+    }
+
+    // Kiểm tra trùng lặp
+    if (checkScheduleIdExists(value)) {
+      return Promise.reject(new Error("Mã lịch trình đã tồn tại!"));
+    }
+
+    return Promise.resolve();
+  };
 
   // Fetch dữ liệu tuyến và xe khi modal mở
   useEffect(() => {
@@ -18,8 +69,14 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
           fetchAllTrips(),
           fetchAllBuses(),
         ]);
-        setTrips(tripsResponse.data);
-        setBuses(busesResponse.data);
+        const activeTrips = tripsResponse.data.filter(
+          (trip) => trip.attributes.status === "Hoạt động"
+        );
+        const activeBuses = busesResponse.data.filter(
+          (bus) => bus.attributes.status === "Hoạt động"
+        );
+        setTrips(activeTrips);
+        setBuses(activeBuses);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -31,6 +88,7 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
   }, [visible]);
 
   React.useEffect(() => {
+    setIsEditing(!!initialValues);
     if (initialValues) {
       form.setFieldsValue({
         ...initialValues.attributes,
@@ -40,7 +98,8 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
           "HH:mm"
         ),
         MaTuyen: initialValues.attributes.MaTuyen.data.attributes.MaTuyen,
-        BienSo: initialValues.attributes.BienSo.data.attributes.BienSo,
+        BienSo: initialValues.attributes?.BienSo?.data?.attributes?.BienSo,
+        status: initialValues.attributes.status,
       });
     } else {
       form.resetFields();
@@ -57,12 +116,19 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
       });
     } else {
       form.resetFields();
+      form.setFieldsValue({
+        status: "Ngưng hoạt động",
+      });
     }
   }, [initialValues, form]);
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      if (checkScheduleIdExists(values.IDSchedule)) {
+        message.error("Mã lịch trình đã tồn tại!");
+        return;
+      }
       onOk({
         ...values,
         ngaydi: values.ngaydi.toISOString(),
@@ -75,7 +141,7 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
 
   return (
     <Modal
-      title={initialValues ? "Cập nhật Lịch Trình" : "Thêm Lịch Trình Mới"}
+      title={isEditing ? "Cập nhật Lịch Trình" : "Thêm Lịch Trình Mới"}
       visible={visible}
       onCancel={onCancel}
       onOk={handleOk}
@@ -85,48 +151,86 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
         <Form.Item
           label="Mã Lịch Trình"
           name="IDSchedule"
-          rules={[{ required: true }]}
+          rules={[
+            { required: true, message: "Vui lòng nhập mã lịch trình!" },
+            { validator: validateScheduleId },
+          ]}
+          validateTrigger={["onChange", "onBlur"]}
         >
           <Input
-            value={`ML${
-              form.getFieldValue("IDSchedule")?.replace("ML", "") || ""
-            }`}
+            placeholder="ML0000"
+            maxLength={6}
             onChange={(e) => {
-              const value = e.target.value;
-              // Loại bỏ "ML" và các ký tự không phải số
-              const numericValue = value
-                .replace(/ML/g, "")
-                .replace(/[^0-9]/g, "");
+              let value = e.target.value.toUpperCase();
+              // Tự động thêm ML nếu chưa có
+              if (!value.startsWith("ML")) {
+                value = "ML" + value.replace(/[^0-9]/g, "");
+              } else {
+                value = "ML" + value.replace(/[^0-9]/g, "");
+              }
+              // Cập nhật giá trị trong form
               form.setFieldsValue({
-                IDSchedule: `ML${numericValue}`,
+                IDSchedule: value,
               });
             }}
-            maxLength={6} // ML + 4 số
           />
         </Form.Item>
         <Form.Item label="Ngày Đi" name="ngaydi" rules={[{ required: true }]}>
           <DatePicker showTime format="DD-MM-YYYY HH:mm" />
         </Form.Item>
-        {/* <Form.Item
-          label="Thời Gian Dự Kiến"
-          name="ExpectedTime"
-          rules={[{ required: true }]}
-        >
-          <TimePicker format="HH:mm" />
-        </Form.Item> */}
+
         <Form.Item
-          label="Mã Tuyến"
+          label="Tuyến Đường"
           name="MaTuyen"
           rules={[{ required: true, message: "Vui lòng chọn tuyến!" }]}
         >
-          <Select>
+          <Select
+            placeholder="Chọn tuyến đường"
+            onChange={(value) => {
+              const selectedTrip = trips.find((trip) => trip.id === value);
+              setSelectedTrip(selectedTrip);
+            }}
+          >
             {trips.map((trip) => (
               <Option key={trip.id} value={trip.id}>
-                {trip.attributes.MaTuyen}
+                {trip.attributes &&
+                trip.attributes.departure_location_id &&
+                trip.attributes.arrival_location_id
+                  ? `${
+                      trip.attributes.departure_location_id.data?.attributes
+                        ?.name || "N/A"
+                    } → ${
+                      trip.attributes.arrival_location_id.data?.attributes
+                        ?.name || "N/A"
+                    }`
+                  : "Tuyến không hợp lệ"}
               </Option>
             ))}
           </Select>
         </Form.Item>
+        {selectedTrip && (
+          <>
+            <Form.Item label="Điểm Khởi Hành">
+              <Input
+                value={
+                  selectedTrip.attributes.departure_location_id.data.attributes
+                    .name
+                }
+                disabled
+              />
+            </Form.Item>
+            <Form.Item label="Điểm Đến">
+              <Input
+                value={
+                  selectedTrip.attributes.arrival_location_id.data.attributes
+                    .name
+                }
+                disabled
+              />
+            </Form.Item>
+          </>
+        )}
+
         <Form.Item
           label="Biển Số Xe"
           name="BienSo"
@@ -135,9 +239,22 @@ const ScheduleFormModal = ({ visible, onCancel, onOk, initialValues }) => {
           <Select>
             {buses.map((bus) => (
               <Option key={bus.id} value={bus.id}>
-                {bus.attributes.BienSo}
+                {`${bus.attributes.BienSo} - ${bus.attributes.busName}`}
               </Option>
             ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="status"
+          label="Trạng Thái"
+          rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+        >
+          <Select disabled={!isEditing}>
+            {" "}
+            {/* Disable khi đang tạo mới */}
+            <Option value="Hoạt động">Hoạt động</Option>
+            <Option value="Ngưng hoạt động">Ngưng hoạt động</Option>
           </Select>
         </Form.Item>
       </Form>

@@ -361,3 +361,25 @@ body {
 .footer-links a:hover {
   text-decoration: underline;
 }
+
+.even-row {
+  background-color: #f0f8ff; /* Màu nền cho hàng chẵn */
+}
+
+.odd-row {
+  background-color: #ffffff; /* Màu nền cho hàng lẻ */
+}
+
+.ant-table {
+  border-radius: 8px;
+  overflow: hidden; /* Để viền tròn không bị cắt */
+}
+
+.ant-table-thead > tr > th {
+  background-color: #e6f7ff; /* Màu nền cho tiêu đề bảng */
+  color: #1890ff; /* Màu chữ cho tiêu đề bảng */
+}
+
+.ant-table-tbody > tr > td {
+  padding: 12px; /* Tăng khoảng cách giữa các hàng */
+}
