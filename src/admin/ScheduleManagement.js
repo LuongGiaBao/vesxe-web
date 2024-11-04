@@ -1,6 +1,6 @@
 // src/admin/ScheduleManagement.js
 import React, { useEffect, useState } from "react";
-import { Table, Button, message, Space, Modal } from "antd";
+import { Table, Button, message, Space, Modal, Tag } from "antd";
 import {
   fetchAllSchedules,
   createSchedule,
@@ -38,7 +38,11 @@ const ScheduleManagement = () => {
 
   const handleAddSchedule = async (values) => {
     try {
-      await createSchedule(values);
+      const scheduleData = {
+        ...values,
+        status: "Ngưng hoạt động", // Luôn set là "Ngưng hoạt động" khi tạo mới
+      };
+      await createSchedule(scheduleData);
       message.success("Tạo lịch trình mới thành công!");
       setIsModalVisible(false);
       loadSchedules();
@@ -49,7 +53,11 @@ const ScheduleManagement = () => {
 
   const handleEditSchedule = async (values) => {
     try {
-      await updateSchedule(editingSchedule.id, values);
+      const scheduleData = {
+        ...values,
+        status: values.status, // Giữ nguyên status được chọn khi edit
+      };
+      await updateSchedule(editingSchedule.id, scheduleData);
       message.success("Cập nhật lịch trình thành công!");
       setIsModalVisible(false);
       loadSchedules();
@@ -93,14 +101,37 @@ const ScheduleManagement = () => {
 
   const columns = [
     {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+    },
+    {
       title: "Mã Lịch Trình",
       dataIndex: ["attributes", "IDSchedule"],
       key: "IDSchedule",
     },
     {
-      title: "Mã Tuyến",
-      dataIndex: ["attributes", "MaTuyen", "data", "attributes", "MaTuyen"],
-      key: "MaTuyen",
+      title: "Tuyến Đường",
+      dataIndex: ["attributes", "MaTuyen", "data", "attributes"],
+      key: "route",
+      render: (record, row) => {
+        if (!row.attributes?.MaTuyen?.data?.attributes) {
+          return "N/A";
+        }
+        const departureLocation =
+          row.attributes.MaTuyen.data.attributes.departure_location_id?.data
+            ?.attributes?.name;
+        const arrivalLocation =
+          row.attributes.MaTuyen.data.attributes.arrival_location_id?.data
+            ?.attributes?.name;
+        return (
+          <span>
+            <span>{departureLocation || "N/A"}</span>
+            <span style={{ margin: "0 8px" }}>→</span>
+            <span>{arrivalLocation || "N/A"}</span>
+          </span>
+        );
+      },
     },
     {
       title: "Biển Số Xe",
@@ -130,7 +161,16 @@ const ScheduleManagement = () => {
         return moment(arrivalTime).format("DD/MM/YYYY HH:mm");
       },
     },
-
+    {
+      title: "Trạng Thái",
+      dataIndex: ["attributes", "status"],
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "Hoạt động" ? "green" : "red"}>
+          {status || "N/A"}
+        </Tag>
+      ),
+    },
     {
       title: "Hành Động",
       key: "action",

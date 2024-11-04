@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, message,Space  } from "antd";
+import { Table, Button, Modal, message, Space } from "antd";
 import LocationModal from "../components/LocationModal";
 import Sidebar from "../components/Sidebar";
 import {
@@ -8,7 +8,7 @@ import {
   fetchAllLocations,
   updateLocation,
 } from "../api/LocationApi";
-
+import { Descriptions } from "antd";
 const LocationManagement = () => {
   const [locations, setLocations] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -108,6 +108,11 @@ const LocationManagement = () => {
       key: "id",
     },
     {
+      title: "Mã địa điểm",
+      dataIndex: ["attributes", "MaDiaDiem"],
+      key: "MaDiaDiem",
+    },
+    {
       title: "Tên Địa Điểm",
       dataIndex: ["attributes", "name"],
       key: "name",
@@ -117,16 +122,16 @@ const LocationManagement = () => {
       key: "action",
       render: (_, location) => (
         <Space>
-        <Button type="primary" onClick={() => showModal(location)}>
-          Sửa
-        </Button>
-        <Button danger onClick={() => handleDeleteLocation(location.id)}>
-          Xóa
-        </Button>
-        <Button type="default" onClick={() => showDetailModal(location)}>
-          Xem Chi Tiết
-        </Button>
-      </Space>
+          <Button type="primary" onClick={() => showModal(location)}>
+            Sửa
+          </Button>
+          <Button danger onClick={() => handleDeleteLocation(location.id)}>
+            Xóa
+          </Button>
+          <Button type="default" onClick={() => showDetailModal(location)}>
+            Xem Chi Tiết
+          </Button>
+        </Space>
       ),
     },
   ];
@@ -147,6 +152,7 @@ const LocationManagement = () => {
           onCancel={handleCloseModal}
           onSave={handleSaveLocation}
           location={selectedLocation}
+          existingLocations={locations}
         />
 
         {/* Modal chi tiết địa điểm */}
@@ -157,17 +163,17 @@ const LocationManagement = () => {
           footer={null}
         >
           {selectedLocation && (
-            <>
-              <p>
-                <strong>Tên Địa Điểm:</strong>{" "}
+            <Descriptions bordered column={1}>
+              <Descriptions.Item label="Mã Địa Điểm">
+                {selectedLocation.attributes.MaDiaDiem}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tên Địa Điểm">
                 {selectedLocation.attributes.name}
-              </p>
-              <p>
-                <strong>Mô Tả:</strong>{" "}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mô Tả">
                 {selectedLocation.attributes.description || "N/A"}
-              </p>
-              {/* Thêm thông tin khác nếu cần */}
-            </>
+              </Descriptions.Item>
+            </Descriptions>
           )}
         </Modal>
       </div>

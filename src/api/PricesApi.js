@@ -3,7 +3,9 @@ import { apiClient } from "../services/apiservices";
 // Lấy tất cả giá
 export const fetchAllPrices = async () => {
   try {
-    const response = await apiClient.get("/ticket-prices?populate=*");
+    const response = await apiClient.get(
+      "/ticket-prices?populate[detai_prices][populate][trip][populate]=*&populate[detai_prices][populate]=*"
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching prices:", error);
@@ -14,12 +16,15 @@ export const fetchAllPrices = async () => {
 // Thêm giá
 export const createPrice = async (priceData) => {
   try {
-    const response = await apiClient.post("/ticket-prices?populate=*", {
-      data: {
-        ...priceData,
-        promotion: priceData.promotionId, // Thêm ID khuyến mãi vào dữ liệu
-      },
-    });
+    const response = await apiClient.post(
+      "/ticket-prices?populate[detai_prices][populate][trip][populate]=*",
+      {
+        data: {
+          ...priceData,
+          // Thêm ID khuyến mãi vào dữ liệu
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating price:", error);
@@ -33,7 +38,7 @@ export const updatePrice = async (id, priceData) => {
     const response = await apiClient.put(`/ticket-prices/${id}`, {
       data: {
         ...priceData,
-        promotion: priceData.promotionId, // Thêm ID khuyến mãi vào dữ liệu
+        // Thêm ID khuyến mãi vào dữ liệu
       },
     });
     return response.data;

@@ -6,8 +6,16 @@ import moment from "moment";
 const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
   if (!schedule) return null;
 
-  const { attributes: { IDSchedule, ngaydi, ngayden, MaTuyen, BienSo } = {} } =
-    schedule;
+  const {
+    attributes: {
+      IDSchedule,
+      ngaydi,
+      MaTuyen,
+      BienSo,
+      MaDiemDon,
+      MaDiemTra,
+    } = {},
+  } = schedule;
 
   const calculateArrivalTime = (departureTime, expectedTime) => {
     if (!departureTime || !expectedTime) return null;
@@ -24,6 +32,17 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
   const expectedTime = MaTuyen?.data?.attributes?.ExpectedTime;
   const arrivalTime = calculateArrivalTime(ngaydi, expectedTime);
 
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'hoạt động':
+        return 'green';
+      case 'ngưng hoạt động':
+        return 'red';
+      default:
+        return 'default';
+    }
+  };
+  
   return (
     <Modal
       title="Chi Tiết Lịch Trình"
@@ -31,6 +50,7 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
       onCancel={onCancel}
       footer={null}
       width={700}
+      centered={true}
     >
       <Descriptions bordered column={1}>
         <Descriptions.Item label="ID Lịch Trình">
@@ -51,10 +71,11 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
         </Descriptions.Item>
 
         <Descriptions.Item label="Thông Tin Tuyến">
-          {MaTuyen?.data?  (
+          {MaTuyen?.data ? (
             <>
               <div>
-                <strong>Mã tuyến:</strong> {MaTuyen.data.attributes.MaTuyen}
+                <strong>Tuyến đường</strong>{" "}
+                {`${MaTuyen.data.attributes.departure_location_id.data.attributes.name} → ${MaTuyen.data.attributes.arrival_location_id.data.attributes.name}`}
               </div>
               <div>
                 <strong>Trạng thái:</strong>{" "}
@@ -112,6 +133,55 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
           ) : (
             "N/A"
           )}
+        </Descriptions.Item>
+
+        {/* Thêm thông tin về điểm đón */}
+        <Descriptions.Item label="Điểm Đón">
+          {MaTuyen?.data?.attributes?.MaDiemDon?.data ? (
+            <>
+              <div>
+                <strong>Mã điểm đón:</strong>{" "}
+                {MaTuyen.data.attributes.MaDiemDon.data.attributes.MaDiemDon}
+              </div>
+              <div>
+                <strong>Địa điểm:</strong>{" "}
+                {MaTuyen.data.attributes.MaDiemDon.data.attributes.location}
+              </div>
+              <div>
+                <strong>Địa chỉ:</strong>{" "}
+                {MaTuyen.data.attributes.MaDiemDon.data.attributes.address}
+              </div>
+            </>
+          ) : (
+            "N/A"
+          )}
+        </Descriptions.Item>
+
+        {/* Thêm thông tin về điểm trả */}
+        <Descriptions.Item label="Điểm Trả">
+          {MaTuyen?.data?.attributes?.MaDiemTra?.data ? (
+            <>
+              <div>
+                <strong>Mã điểm trả:</strong>{" "}
+                {MaTuyen.data.attributes.MaDiemTra.data.attributes.MaDiemTra}
+              </div>
+              <div>
+                <strong>Địa điểm:</strong>{" "}
+                {MaTuyen.data.attributes.MaDiemTra.data.attributes.location}
+              </div>
+              <div>
+                <strong>Địa chỉ:</strong>{" "}
+                {MaTuyen.data.attributes.MaDiemTra.data.attributes.address}
+              </div>
+            </>
+          ) : (
+            "N/A"
+          )}
+        </Descriptions.Item>
+        <Descriptions.Item label="Trạng Thái" span={3}>
+          <Tag color={getStatusColor(schedule.attributes.status)}>
+            {schedule.attributes.status}
+          </Tag>
         </Descriptions.Item>
       </Descriptions>
     </Modal>
