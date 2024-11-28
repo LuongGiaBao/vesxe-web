@@ -1,666 +1,992 @@
-// // // src/admin/InvoiceManagement.js
-// // import React, { useState, useEffect } from 'react';
-// // import Sidebar from '../components/Sidebar';
+import React, { useEffect, useState } from "react";
+import { Table, Button, Modal, message, Space } from "antd";
+import {
+  fetchAllInvoices,
+  createInvoice,
+  updateInvoice,
+  deleteInvoice,
+} from "../api/InvoicesApi";
+import InvoiceFormModal from "../components/InvoiceFormModal"; // Modal để thêm/sửa hóa đơn
+import Sidebar from "../components/Sidebar";
+import confirm from "antd/es/modal/confirm";
+import InvoiceDetailFormModal from "../components/InvoiceDetailFormModal";
+import moment from "moment";
+import {
+  createInvoiceDetail,
+  deleteInvoiceDetail,
+  fetchAllInvoiceDetails,
+  updateInvoiceDetail,
+} from "../api/InvoiceDetailApi";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { fetchAllCustomers } from "../api/CustomerApi";
+import { fetchAllAdminUsers } from "../api/AdminUserApi";
+import { fetchAllSchedules } from "../api/ScheduleApi";
+import { fetchAllTrips } from "../api/TripApi";
+import { fetchAllPriceDetails } from "../api/PriceDetailApi";
+import InvoiceDetailModal from "../components/InvoiceDetailModal";
+const InvoiceManagement = () => {
+  const [invoices, setInvoices] = useState([]);
+  const [invoiceDetails, setInvoiceDetails] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
+  const [editingInvoiceDetail, setEditingInvoiceDetail] = useState(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+  const [employees, setEmployees] = useState([]); // Dữ liệu nhân viên
+  const [schedules, setSchedules] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [trips, setTrips] = useState([]);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const [priceDetails, setPriceDetails] = useState([]);
 
-// // const InvoiceManagement = () => {
-// //   const [invoices, setInvoices] = useState([]);
+  const [isInvoiceDetailModalVisible, setIsInvoiceDetailModalVisible] =
+    useState(false);
+  useEffect(() => {
+    loadInvoices();
+    loadInvoiceDetails();
+    loadCustomers();
+    loadEmployees();
+    loadSchedules();
+    loadTrips();
+    loadPriceDetail();
+  }, []);
 
-// //   useEffect(() => {
-// //     // Giả lập API call để lấy danh sách vé
-// //     const fetchInvoices = async () => {
-// //       const invoiceData = [
-// //         { id: 1, userId: 1, tripId: 1, amount: 150000, status: 'Đã thanh toán', bookedAt: '2024-09-28 12:00' },
-// //         { id: 2, userId: 2, tripId: 2, amount: 200000, status: 'Chưa thanh toán', bookedAt: '2024-09-28 13:00' },
-// //         // Thêm nhiều vé khác
-// //       ];
-// //       setInvoices(invoiceData);
-// //     };
-// //     fetchInvoices();
-// //   }, []);
+  const loadInvoices = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAllInvoices();
+      setInvoices(data.data);
+    } catch (error) {
+      message.error("Không thể tải danh sách hóa đơn");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// //   return (
-// //     <div className="invoice-management">
-// //       <Sidebar />
-// //       <div className="admin-content">
-// //         <h1>Quản lý hóa đơn</h1>
-// //         <table className="admin-table">
-// //           <thead>
-// //             <tr>
-// //               <th>ID</th>
-// //               <th>ID Người dùng</th>
-// //               <th>ID Chuyến xe</th>
-// //               <th>Tổng tiền</th>
-// //               <th>Trạng thái</th>
-// //               <th>Ngày giờ đặt</th>
-// //               <th>Hành động</th>
-// //             </tr>
-// //           </thead>
-// //           <tbody>
-// //             {invoices.map(invoice => (
-// //               <tr key={invoice.id}>
-// //                 <td>{invoice.id}</td>
-// //                 <td>{invoice.userId}</td>
-// //                 <td>{invoice.tripId}</td>
-// //                 <td>{invoice.amount} VND</td>
-// //                 <td>{invoice.status}</td>
-// //                 <td>{invoice.bookedAt}</td>
-// //                 <td>
-// //                   <button className="edit-btn">Chỉnh sửa</button>
-// //                   <button className="delete-btn">Xóa</button>
-// //                 </td>
-// //               </tr>
-// //             ))}
-// //           </tbody>
-// //         </table>
-// //       </div>
-// //     </div>
-// //   );
-// // };
+  const loadInvoiceDetails = async () => {
+    setLoading(true); // Bắt đầu tải dữ liệu
+    try {
+      const data = await fetchAllInvoiceDetails(); // Gọi hàm fetch
 
-// // export default InvoiceManagement;
+      setInvoiceDetails(data.data); // Lưu dữ liệu vào state (giả sử dữ liệu trả về có cấu trúc { data: [...] })
+    } catch (error) {
+      message.error("Không thể tải danh sách chi tiết hóa đơn"); // Hiển thị thông báo lỗi
+    } finally {
+      setLoading(false); // Kết thúc trạng thái tải dữ liệu
+    }
+  };
 
-// // src/admin/InvoiceManagement.js
-// // import React, { useState, useEffect } from "react";
-// // import {
-// //   Table,
-// //   Tag,
-// //   Space,
-// //   Button,
-// //   Modal,
-// //   Typography,
-// //   Form,
-// //   Input,
-// //   message,
-// // } from "antd";
-// // import {
-// //   EyeOutlined,
-// //   EditOutlined,
-// //   DeleteOutlined,
-// //   PlusOutlined,
-// // } from "@ant-design/icons";
-// // import {
-// //   createInvoice,
-// //   deleteInvoice,
-// //   fetchAllInvoices,
-// //   updateInvoice,
-// // } from "../api/InvoicesApi";
-// // import Sidebar from "../components/Sidebar";
-// // import InvoiceDetailModal from "../components/InvoiceDetailModal";
+  const loadCustomers = async () => {
+    try {
+      const customersData = await fetchAllCustomers();
+      setCustomers(customersData);
+    } catch (error) {
+      message.error("Không thể tải danh sách khách hàng");
+    }
+  };
+  const loadEmployees = async () => {
+    try {
+      const employeesData = await fetchAllAdminUsers();
 
-// // const { Title, Text } = Typography;
+      setEmployees(employeesData);
+    } catch (error) {
+      message.error("Không thể tải danh sách nhân viên");
+    }
+  };
+  const loadSchedules = async () => {
+    try {
+      const schedulesData = await fetchAllSchedules();
 
-// // const InvoiceManagement = () => {
-// //   const [invoices, setInvoices] = useState([]);
-// //   const [loading, setLoading] = useState(false);
-// //   const [formModalVisible, setFormModalVisible] = useState(false);
-// //   const [detailModalVisible, setDetailModalVisible] = useState(false);
-// //   const [editModalVisible, setEditModalVisible] = useState(false);
-// //   const [selectedInvoice, setSelectedInvoice] = useState(null);
-// //   const [form] = Form.useForm();
+      setSchedules(schedulesData);
+    } catch (error) {
+      message.error("Không thể tải danh sách lịch trình");
+    }
+  };
+  const loadTrips = async () => {
+    try {
+      const tripsData = await fetchAllTrips();
 
-// //   useEffect(() => {
-// //     fetchInvoices();
-// //   }, []);
+      setTrips(tripsData);
+    } catch (error) {
+      message.error("Không thể tải danh sách nhân viên");
+    }
+  };
+  const loadPriceDetail = async () => {
+    try {
+      const tripsData = await fetchAllPriceDetails();
 
-// //   const fetchInvoices = async () => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchAllInvoices();
-// //       setInvoices(data.data);
-// //     } catch (error) {
-// //       message.error("Không thể tải danh sách hóa đơn");
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
+      setPriceDetails(tripsData);
+    } catch (error) {
+      message.error("Không thể tải danh sách nhân viên");
+    }
+  };
+  const handleCreate = async (values) => {
+    try {
+      await createInvoice(values);
+      message.success("Thêm hóa đơn thành công!");
+      loadInvoices();
+      setModalVisible(false);
+    } catch (error) {
+      message.error("Không thể tạo hóa đơn");
+    }
+  };
 
-// //   const showInvoiceDetail = (record) => {
-// //     setSelectedInvoice(record);
-// //     setDetailModalVisible(true);
-// //   };
+  const handleUpdate = async (values) => {
+    try {
+      await updateInvoice(editingInvoice.id, values);
+      message.success("Cập nhật hóa đơn thành công!");
+      loadInvoices();
+      setModalVisible(false);
+      setEditingInvoice(null);
+    } catch (error) {
+      message.error("Không thể cập nhật hóa đơn");
+    }
+  };
 
-// //   const showEditModal = (record) => {
-// //     setSelectedInvoice(record);
-// //     form.setFieldsValue({
-// //       invoiceNumber: record.attributes.invoiceNumber,
-// //       totalAmount: record.attributes.totalAmount,
-// //       status: record.attributes.status,
-// //     });
-// //     setEditModalVisible(true);
-// //   };
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content: "Bạn có chắc chắn muốn xóa hóa đơn này không?",
+      onOk: async () => {
+        try {
+          await deleteInvoice(id);
+          message.success("Xóa hóa đơn thành công!");
+          loadInvoices();
+        } catch (error) {
+          message.error("Không thể xóa hóa đơn");
+        }
+      },
+    });
+  };
+  const handleCreateInvoiceDetail = async (values) => {
+    try {
+      await createInvoiceDetail({
+        values,
+        // invoiceCode: selectedInvoiceId, // Đảm bảo truyền đúng ID hóa đơn
+      });
+      message.success("Thêm chi tiết hóa đơn thành công!");
+      loadInvoiceDetails(); // Tải lại danh sách chi tiết hóa đơn
+      setIsInvoiceDetailModalVisible(false);
+    } catch (error) {
+      message.error("Không thể tạo chi tiết hóa đơn");
+    }
+  };
+  const handleUpdateInvoiceDetail = async (values) => {
+    try {
+      await updateInvoiceDetail(editingInvoiceDetail.id, {
+        ...values,
+      });
+      message.success("Cập nhật chi tiết hóa đơn thành công!");
+      loadInvoiceDetails(); // Tải lại danh sách chi tiết hóa đơn
+      setIsInvoiceDetailModalVisible(false);
+      setEditingInvoiceDetail(null);
+    } catch (error) {
+      message.error("Không thể cập nhật chi tiết hóa đơn");
+    }
+  };
+  // Hàm xử lý thêm chi tiết hóa đơn
+  const handleAddInvoiceDetail = async (invoiceId) => {
+    console.log("invoiceId", invoiceId);
 
-// //   const handleCancelFormModal = () => {
-// //     setFormModalVisible(false);
-// //   };
+    setSelectedInvoiceId(invoiceId);
+    setEditingInvoiceDetail(null);
+    setIsInvoiceDetailModalVisible(true);
+  };
 
-// //   const handleCancelDetailModal = () => {
-// //     setDetailModalVisible(false);
-// //   };
+  const handleDeleteInvoiceDetail = async (id) => {
+    confirm({
+      title: "Bạn có chắc chắn muốn xóa chi tiết hóa đơn này?",
+      icon: <ExclamationCircleOutlined />,
+      content: "Hành động này không thể hoàn tác.",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await deleteInvoiceDetail(id); // Gọi API để xóa chi tiết hóa đơn
+          message.success("Xóa chi tiết hóa đơn thành công");
+          loadInvoices(); // Tải lại danh sách hóa đơn
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi xóa chi tiết hóa đơn");
+        }
+      },
+    });
+  };
+  const handleViewDetails = (invoice) => {
+    setEditingInvoice(invoice);
+    // Lọc chi tiết hóa đơn liên quan
+    const details = invoiceDetails.filter(
+      (detail) => detail.invoiceId === invoice.id
+    );
+    setInvoiceDetails(details);
+    setIsDetailModalVisible(true); // Mở modal
+  };
 
-// //   const handleCreate = async (values) => {
-// //     try {
-// //       await createInvoice(values);
-// //       message.success("Hóa đơn đã được tạo thành công");
-// //       setEditModalVisible(false);
-// //       fetchInvoices();
-// //     } catch (error) {
-// //       message.error("Không thể tạo hóa đơn");
-// //     }
-// //   };
+  const columns = [
+    { title: "ID", dataIndex: "id", key: "id" },
+    {
+      title: "Mã Hóa Đơn",
+      dataIndex: ["attributes", "MaHoaDon"], // Lấy mã hóa đơn
+      key: "MaHoaDon",
+    },
+    {
+      title: "Mã Khách hàng",
+      dataIndex: ["attributes", "customerId", "data", "attributes", "MaKH"], // Lấy tên khách hàng
+      key: "MaKH",
+    },
+    {
+      title: "Mã Nhân viên",
+      dataIndex: ["attributes", "employeeId", "data", "attributes", "MaNV"], // Lấy tên khách hàng
+      key: "MaNV",
+    },
+    {
+      title: "Mã Lịch",
+      dataIndex: [
+        "attributes",
+        "scheduleId",
+        "data",
+        "attributes",
+        "IDSchedule",
+      ], // Lấy tên khách hàng
+      key: "IDSchedule",
+    },
+    // {
+    //   title: "type",
+    //   dataIndex: ["attributes", "type"], // Lấy mã hóa đơn
+    //   key: "type",
+    // },
+    {
+      title: "Phương Thức Thanh Toán",
+      dataIndex: ["attributes", "PhuongThucThanhToan"], // Lấy phương thức thanh toán
+      key: "PhuongThucThanhToan",
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: ["attributes", "status"], // Lấy trạng thái
+      key: "status",
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: ["attributes", "createdAt"], // Lấy ngày tạo
+      key: "createdAt",
+      render: (text) => moment(text).format("DD/MM/YYYY HH:mm"), // Định dạng ngày
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, record) => (
+        <>
+          <Space>
+            <Button
+              onClick={() => {
+                setEditingInvoice(record);
+                setModalVisible(true);
+              }}
+            >
+              Sửa
+            </Button>
+            {/* <Button danger onClick={() => handleDelete(record.id)}>
+            Xóa
+          </Button> */}
+            {/* <Button
+              onClick={() => handleViewDetails(record)} // Gọi hàm để xem chi tiết hóa đơn
+              style={{ marginLeft: 8 }}
+            >
+              Xem Chi Tiết
+            </Button> */}
+          </Space>
+        </>
+      ),
+    },
+  ];
 
-// //   const handleUpdate = async (values) => {
-// //     try {
-// //       await updateInvoice(selectedInvoice.id, values);
-// //       message.success("Hóa đơn đã được cập nhật thành công");
-// //       setEditModalVisible(false);
-// //       fetchInvoices();
-// //     } catch (error) {
-// //       message.error("Không thể cập nhật hóa đơn");
-// //     }
-// //   };
+  const expandedRowRender = (record) => {
+    const detailColumns = [
+      {
+        title: "Mã Chi Tiết Hóa Đơn",
+        dataIndex: ["attributes", "MaChiTietHoaDon"],
+        key: "detailCode",
+      },
+      {
+        title: "Mã Hóa Đơn",
+        dataIndex: ["attributes", "invoice", "data", "attributes", "MaHoaDon"],
+        key: "invoiceCode",
+        render: (text, record) =>
+          record.attributes.invoice?.data?.attributes?.MaHoaDon || "N/A",
+      },
+      {
+        title: "Mã chuyến xe ",
+        dataIndex: ["attributes", "trip", "data", "MaTuyen"],
+        key: "ticketCode",
+        render: (text, record) =>
+          record.attributes.trip?.data?.attributes?.MaTuyen || "N/A",
+      },
+      {
+        title: "Mã Chi Tiết Giá",
+        dataIndex: [
+          "attributes",
+          "detai_price",
+          "data",
+          "attributes",
+          "MaChiTietGia",
+        ],
+        key: "priceDetailCode",
+        render: (text, record) =>
+          record.attributes.detai_price?.data?.attributes?.MaChiTietGia ||
+          "N/A",
+      },
+      {
+        title: "Số Lượng",
+        dataIndex: ["attributes", "soluong"],
+        key: "quantity",
+      },
+      {
+        title: "Tổng Tiền",
+        dataIndex: ["attributes", "tongTien"],
+        key: "totalAmount",
+        render: (text) => `${parseInt(text).toLocaleString()} VNĐ`,
+      },
+      {
+        title: "Hành Động",
+        key: "action",
+        render: (_, detail) => (
+          <Space>
+            <Button
+              onClick={() => {
+                setEditingInvoiceDetail(detail);
+                setIsInvoiceDetailModalVisible(true);
+              }}
+            >
+              Sửa
+            </Button>
+            {/* <Button danger onClick={() => handleDeleteInvoiceDetail(detail.id)}>
+              Xóa
+            </Button> */}
+          </Space>
+        ),
+      },
+    ];
 
-// //   const handleDelete = async (id) => {
-// //     try {
-// //       await deleteInvoice(id);
-// //       message.success("Hóa đơn đã được xóa thành công");
-// //       fetchInvoices();
-// //     } catch (error) {
-// //       message.error("Không thể xóa hóa đơn");
-// //     }
-// //   };
+    // Tìm hóa đơn hiện tại dựa trên ID
+    const currentInvoice = invoices.find((invoice) => invoice.id === record.id);
 
-// //   const formatDateTime = (dateString) => {
-// //     return new Date(dateString).toLocaleString("vi-VN");
-// //   };
+    // Kiểm tra nếu currentInvoice không tồn tại
+    if (!currentInvoice) {
+      console.error(`Không tìm thấy hóa đơn với ID: ${record.id}`);
+      return <p>Không tìm thấy hóa đơn.</p>; // Hoặc một thông báo khác
+    }
 
-// //   const columns = [
-// //     {
-// //       title: "Mã hóa đơn",
-// //       dataIndex: ["attributes", "invoiceNumber"],
-// //       key: "invoiceNumber",
-// //       render: (text) => <span>{text}</span>,
-// //     },
-// //     {
-// //       title: "Khách hàng",
-// //       dataIndex: ["attributes", "users_permissions_user", "data", "attributes"],
-// //       key: "customer",
-// //       render: (user) => (
-// //         <span>
-// //           {user.fullName || user.username}
-// //           <br />
-// //           {/* <small>{user.email}</small> */}
-// //         </span>
-// //       ),
-// //     },
-// //     {
-// //       title: "Chuyến đi",
-// //       dataIndex: ["attributes", "trip", "data", "attributes"],
-// //       key: "trip",
-// //       render: (trip) => (
-// //         <span>
-// //           <div>Khởi hành: {formatDateTime(trip.departureTime)}</div>
-// //           <div>Đến: {formatDateTime(trip.arrivalTime)}</div>
-// //           <div>Thời gian: {trip.travelTime}</div>
-// //         </span>
-// //       ),
-// //     },
-// //     {
-// //       title: "Ghế đã đặt",
-// //       dataIndex: ["attributes", "seats", "data"],
-// //       key: "seats",
-// //       render: (seats) => (
-// //         <span>
-// //           {seats.map((seat) => (
-// //             <Tag
-// //               key={seat.id}
-// //               color={seat.attributes.status === "đã bán" ? "red" : "green"}
-// //             >
-// //               Ghế {seat.attributes.seatNumber}
-// //             </Tag>
-// //           ))}
-// //         </span>
-// //       ),
-// //     },
-// //     {
-// //       title: "Thanh toán",
-// //       dataIndex: ["attributes", "payment", "data", "attributes"],
-// //       key: "payment",
-// //       render: (payment) => (
-// //         <span>
-// //           <div> {payment?.paymentMethod || "N/A"}</div>
-// //           {/* <Tag color={payment?.status === "completed" ? "green" : "orange"}>
-// //             {payment?.status}
-// //           </Tag> */}
-// //         </span>
-// //       ),
-// //     },
-// //     {
-// //       title: "Ngày tạo",
-// //       dataIndex: ["attributes", "createdAt"],
-// //       key: "createdAt",
-// //       render: (date) => formatDateTime(date),
-// //     },
-// //     {
-// //       title: "Trạng thái",
-// //       dataIndex: ["attributes", "status"],
-// //       key: "status",
-// //       render: (status) => (
-// //         <Tag color={status === "hoàn thành" ? "green" : "orange"}>{status}</Tag>
-// //       ),
-// //     },
-// //     {
-// //       title: "Tổng tiền",
-// //       dataIndex: ["attributes", "totalAmount"],
-// //       key: "totalAmount",
-// //       render: (amount) => <span>{amount?.toLocaleString("vi-VN")} VNĐ</span>,
-// //     },
-// //     {
-// //       title: "Thao tác",
-// //       key: "action",
-// //       render: (_, record) => (
-// //         <Space size="middle">
-// //           <Button
-// //             type="primary"
-// //             icon={<EyeOutlined />}
-// //             onClick={() => showInvoiceDetail(record)}
-// //           >
-// //             Chi tiết
-// //           </Button>
-// //           <Button
-// //             type="default"
-// //             icon={<EditOutlined />}
-// //             onClick={() => showEditModal(record)}
-// //           >
-// //             Sửa
-// //           </Button>
-// //           <Button
-// //             type="danger"
-// //             icon={<DeleteOutlined />}
-// //             onClick={() => handleDelete(record.id)}
-// //           >
-// //             Xóa
-// //           </Button>
-// //         </Space>
-// //       ),
-// //     },
-// //   ];
+    // Lấy danh sách chi tiết hóa đơn
+    const detailInvoices =
+      currentInvoice.attributes?.detail_invoices?.data || [];
 
-// //   // const InvoiceDetailModal = () => (
-// //   //   // ... (giữ nguyên modal chi tiết)
-// //   // );
+    // Nếu không có chi tiết hóa đơn, hiển thị thông báo
+    // if (detailInvoices.length === 0) {
+    //   return (
+    //     <div>
+    //       <p>Chưa có chi tiết hóa đơn.</p>
+    //       <Button onClick={() => handleAddInvoiceDetail(record.id)}>
+    //         Thêm Chi Tiết Hóa Đơn
+    //       </Button>
+    //     </div>
+    //   );
+    // }
 
-// //   const InvoiceFormModal = () => (
-// //     <Modal
-// //       title={selectedInvoice ? "Sửa hóa đơn" : "Tạo hóa đơn mới"}
-// //       visible={editModalVisible}
-// //       onCancel={() => setEditModalVisible(false)}
-// //       footer={null}
-// //     >
-// //       <Form
-// //         form={form}
-// //         onFinish={selectedInvoice ? handleUpdate : handleCreate}
-// //         layout="vertical"
-// //       >
-// //         <Form.Item
-// //           name="invoiceNumber"
-// //           label="Mã hóa đơn"
-// //           rules={[{ required: true, message: "Vui lòng nhập mã hóa đơn" }]}
-// //         >
-// //           <Input />
-// //         </Form.Item>
-// //         <Form.Item
-// //           name="totalAmount"
-// //           label="Tổng tiền"
-// //           rules={[{ required: true, message: "Vui lòng nhập tổng tiền" }]}
-// //         >
-// //           <Input type="number" />
-// //         </Form.Item>
-// //         <Form.Item
-// //           name="status"
-// //           label="Trạng thái"
-// //           rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
-// //         >
-// //           <Input />
-// //         </Form.Item>
-// //         <Form.Item>
-// //           <Button type="primary" htmlType="submit">
-// //             {selectedInvoice ? "Cập nhật" : "Tạo mới"}
-// //           </Button>
-// //         </Form.Item>
-// //       </Form>
-// //     </Modal>
-// //   );
+    return (
+      <div
+        style={{
+          margin: 16,
+          backgroundColor: "#f0f0f0",
+          padding: 16,
+          borderRadius: 8,
+        }}
+      >
+        <Button
+          type="primary"
+          onClick={() => handleAddInvoiceDetail(record.id)}
+          style={{ marginBottom: 16 }}
+        >
+          Thêm Chi Tiết Hóa Đơn
+        </Button>
 
-// //   return (
-// //     <div className="admin-dashboard">
-// //       <Sidebar />
-// //       <div className="admin-content">
-// //         <div className="invoice-management">
-// //           <div className="page-header">
-// //             <Title level={2}>Quản lý hóa đơn</Title>
-// //             <Button
-// //               type="primary"
-// //               icon={<PlusOutlined />}
-// //               onClick={() => {
-// //                 setSelectedInvoice(null);
-// //                 form.resetFields();
-// //                 setEditModalVisible(true);
-// //               }}
-// //             >
-// //               Tạo hóa đơn mới
-// //             </Button>
-// //           </div>
+        <Table
+          columns={detailColumns}
+          dataSource={detailInvoices}
+          pagination={false}
+          rowKey={(item) => item.id}
+          rowClassName={(record, index) =>
+            index % 2 === 0 ? "even-row" : "odd-row"
+          }
+          bordered
+          style={{ marginTop: 16, backgroundColor: "#fff" }}
+        />
+      </div>
+    );
+  };
 
-// //           <Table
-// //             columns={columns}
-// //             dataSource={invoices}
-// //             loading={loading}
-// //             rowKey={(record) => record.id}
-// //             pagination={{
-// //               pageSize: 10,
-// //               showTotal: (total, range) =>
-// //                 `${range[0]}-${range[1]} của ${total} hóa đơn`,
-// //             }}
-// //           />
-// //           <InvoiceFormModal
-// //             visible={formModalVisible}
-// //             onCancel={handleCancelFormModal}
-// //             onSubmit={handleCreate}
-// //             title="Tạo hóa đơn mới"
-// //           />
-// //           <InvoiceDetailModal
-// //             visible={detailModalVisible}
-// //             onCancel={handleCancelDetailModal}
-// //             invoice={selectedInvoice}
-// //           />
-// //         </div>
-// //       </div>
-// //     </div>
-// //   );
-// // };
+  return (
+    <div className="admin-dashboard">
+      <Sidebar />
+      <div className="admin-content">
+        <h1>Quản lý hóa đơn</h1>
+        <Button
+          type="primary"
+          onClick={() => {
+            setEditingInvoice(null);
+            setModalVisible(true);
+          }}
+        >
+          Thêm hóa đơn
+        </Button>
+        <Table
+          columns={columns}
+          dataSource={invoices}
+          loading={loading}
+          rowKey={(record) => record.id}
+          expandable={{
+            expandedRowRender: (record) => {
+              const detailinvoices =
+                record.attributes.detail_invoices?.data || [];
+              if (detailinvoices.length === 0) {
+                return (
+                  <div>
+                    <p>Chưa có chi tiết hóa đơn.</p>
+                    <Button onClick={() => handleAddInvoiceDetail(record.id)}>
+                      Thêm Chi Tiết hóa đơn
+                    </Button>
+                  </div>
+                );
+              }
+              return expandedRowRender(record);
+            },
+            rowExpandable: () => true,
+          }}
+        />
+        <InvoiceFormModal
+          visible={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          invoiceId={editingInvoice?.id} // Đảm bảo truyền invoiceId đúng
+          employees={employees}
+          schedules={schedules}
+          customers={customers}
+        />
 
-// // export default InvoiceManagement;
+        <InvoiceDetailFormModal
+          visible={isInvoiceDetailModalVisible}
+          onCancel={() => setIsInvoiceDetailModalVisible(false)}
+          onOk={
+            editingInvoiceDetail
+              ? handleUpdateInvoiceDetail
+              : handleCreateInvoiceDetail
+          } // Gọi hàm tạo chi tiết hóa đơn
+          invoiceDetail={editingInvoiceDetail}
+          trips={trips}
+          priceDetails={priceDetails}
+          invoices={invoices}
+          setInvoiceDetails={setInvoiceDetails} // Truyền prop này
+        />
+        {/* button chi tiet  */}
+        <InvoiceDetailModal
+          visible={isDetailModalVisible}
+          onCancel={() => setIsDetailModalVisible(false)}
+          invoices={invoices}
+          invoiceDetails={invoiceDetails}
+        />
+      </div>
+    </div>
+  );
+};
 
-// import React, { useState, useEffect } from "react";
-// import { Table, Button, message, Tag, Space } from "antd";
+export default InvoiceManagement;
+
+// import React, { useEffect, useState } from "react";
+// import { Table, Button, Modal, message, Space } from "antd";
 // import {
-//   DeleteOutlined,
-//   EditOutlined,
-//   EyeOutlined,
-//   PlusOutlined,
-// } from "@ant-design/icons";
-// import {
-//   createInvoice,
-//   deleteInvoice,
 //   fetchAllInvoices,
+//   createInvoice,
 //   updateInvoice,
+//   deleteInvoice,
 // } from "../api/InvoicesApi";
-// import InvoiceDetailModal from "../components/InvoiceDetailModal";
 // import InvoiceFormModal from "../components/InvoiceFormModal";
+// import Sidebar from "../components/Sidebar";
+// import confirm from "antd/es/modal/confirm";
+// import InvoiceDetailFormModal from "../components/InvoiceDetailFormModal";
+// import moment from "moment";
+// import {
+//   createInvoiceDetail,
+//   deleteInvoiceDetail,
+//   fetchAllInvoiceDetails,
+//   updateInvoiceDetail,
+// } from "../api/InvoiceDetailApi";
+// import { ExclamationCircleOutlined } from "@ant-design/icons";
+// import { fetchAllCustomers } from "../api/CustomerApi";
+// import { fetchAllAdminUsers } from "../api/AdminUserApi";
+// import { fetchAllSchedules } from "../api/ScheduleApi";
+// import { fetchAllTrips } from "../api/TripApi";
+// import { fetchAllPriceDetails } from "../api/PriceDetailApi";
+// import InvoiceDetailModal from "../components/InvoiceDetailModal";
 
 // const InvoiceManagement = () => {
 //   const [invoices, setInvoices] = useState([]);
+//   const [invoiceDetails, setInvoiceDetails] = useState([]);
 //   const [loading, setLoading] = useState(false);
-//   const [formModalVisible, setFormModalVisible] = useState(false);
-//   const [detailModalVisible, setDetailModalVisible] = useState(false);
-//   const [selectedInvoice, setSelectedInvoice] = useState(null);
-//   const [isEditing, setIsEditing] = useState(false);
+//   const [modalVisible, setModalVisible] = useState(false);
+//   const [editingInvoice, setEditingInvoice] = useState(null);
+
+//   const [editingInvoiceDetail, setEditingInvoiceDetail] = useState(null);
+
+//   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+//   const [employees, setEmployees] = useState([]);
+//   const [schedules, setSchedules] = useState([]);
+//   const [customers, setCustomers] = useState([]);
+//   const [trips, setTrips] = useState([]);
+//   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+//   const [priceDetails, setPriceDetails] = useState([]);
+
+//   const [isInvoiceDetailModalVisible, setIsInvoiceDetailModalVisible] =
+//     useState(false);
+
 //   useEffect(() => {
-//     fetchAllInvoices()
-//       .then((response) => {
-//         setInvoices(response.data);
-//       })
-//       .catch((error) => {
-//         message.error("Lỗi tải dữ liệu hóa đơn!");
-//       });
+//     loadInvoices();
+//     loadInvoiceDetails();
+//     loadCustomers();
+//     loadEmployees();
+//     loadSchedules();
+//     loadTrips();
+//     loadPriceDetail();
 //   }, []);
 
-//   const handleCreateInvoice = (values) => {
-//     createInvoice(values)
-//       .then((response) => {
-//         setInvoices([...invoices, response.data]);
-//         message.success("Tạo hóa đơn thành công!");
-//       })
-//       .catch((error) => {
-//         message.error("Lỗi tạo hóa đơn!");
+//   const loadInvoices = async () => {
+//     setLoading(true);
+//     try {
+//       const data = await fetchAllInvoices();
+//       setInvoices(data.data);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách hóa đơn");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const loadInvoiceDetails = async () => {
+//     setLoading(true);
+//     try {
+//       const data = await fetchAllInvoiceDetails();
+//       console.log("Phản hồi từ API:", data);
+//       setInvoiceDetails(data.data);
+//       console.log("Chi tiết hóa đơn:", data.data);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách chi tiết hóa đơn");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const loadCustomers = async () => {
+//     try {
+//       const customersData = await fetchAllCustomers();
+//       setCustomers(customersData);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách khách hàng");
+//     }
+//   };
+
+//   const loadEmployees = async () => {
+//     try {
+//       const employeesData = await fetchAllAdminUsers();
+//       setEmployees(employeesData);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách nhân viên");
+//     }
+//   };
+
+//   const loadSchedules = async () => {
+//     try {
+//       const schedulesData = await fetchAllSchedules();
+//       setSchedules(schedulesData);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách lịch trình");
+//     }
+//   };
+
+//   const loadTrips = async () => {
+//     try {
+//       const tripsData = await fetchAllTrips();
+//       setTrips(tripsData);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách chuyến xe");
+//     }
+//   };
+
+//   const loadPriceDetail = async () => {
+//     try {
+//       const priceDetailsData = await fetchAllPriceDetails();
+//       setPriceDetails(priceDetailsData);
+//     } catch (error) {
+//       message.error("Không thể tải danh sách chi tiết giá");
+//     }
+//   };
+
+//   const handleCreate = async (values) => {
+//     try {
+//       await createInvoice(values);
+//       message.success("Thêm hóa đơn thành công!");
+//       loadInvoices();
+//       setModalVisible(false);
+//     } catch (error) {
+//       message.error("Không thể tạo hóa đơn");
+//     }
+//   };
+
+//   const handleUpdate = async (values) => {
+//     try {
+//       await updateInvoice(editingInvoice.id, values);
+//       message.success("Cập nhật hóa đơn thành công!");
+//       loadInvoices();
+//       setModalVisible(false);
+//       setEditingInvoice(null);
+//     } catch (error) {
+//       message.error("Không thể cập nhật hóa đơn");
+//     }
+//   };
+
+//   const handleDelete = (id) => {
+//     Modal.confirm({
+//       title: "Xác nhận xóa",
+//       content: "Bạn có chắc chắn muốn xóa hóa đơn này không?",
+//       onOk: async () => {
+//         try {
+//           await deleteInvoice(id);
+//           message.success("Xóa hóa đơn thành công!");
+//           loadInvoices();
+//         } catch (error) {
+//           message.error("Không thể xóa hóa đơn");
+//         }
+//       },
+//     });
+//   };
+//   const handleCreateInvoiceDetail = async (values) => {
+//     console.log("Selected Invoice ID:", selectedInvoiceId);
+//     try {
+//       await createInvoiceDetail({
+//         detailCode: values.detailCode,
+//         invoiceCode: selectedInvoiceId, // Đảm bảo bạn đang sử dụng đúng ID hóa đơn
+//         ticketCode: values.ticketCode,
+//         priceDetailCode: values.priceDetailCode,
+//         quantity: values.quantity,
+//         totalAmount: values.totalAmount,
 //       });
+//       message.success("Thêm chi tiết hóa đơn thành công!");
+//       loadInvoices(); // Tải lại danh sách hóa đơn
+//       setIsInvoiceDetailModalVisible(false);
+//     } catch (error) {
+//       message.error("Không thể tạo chi tiết hóa đơn");
+//     }
 //   };
+//   // const handleCreateInvoiceDetail = async (values) => {
+//   //   try {
+//   //     await createInvoiceDetail({
+//   //       ...values,
+//   //       invoiceCode: selectedInvoiceId,
+//   //     });
+//   //     message.success("Thêm chi tiết hóa đơn thành công!");
+//   //     loadInvoiceDetails();
+//   //     setIsInvoiceDetailModalVisible(false);
+//   //   } catch (error) {
+//   //     message.error("Không thể tạo chi tiết hóa đơn");
+//   //   }
+//   // };
 
-//   const handleUpdateInvoice = (values) => {
-//     updateInvoice(values)
-//       .then((response) => {
-//         const updatedInvoices = invoices.map((invoice) => {
-//           if (invoice.id === values.id) {
-//             return response.data;
-//           }
-//           return invoice;
-//         });
-//         setInvoices(updatedInvoices);
-//         message.success("Cập nhật hóa đơn thành công!");
-//       })
-//       .catch((error) => {
-//         message.error("Lỗi cập nhật hóa đơn!");
-//       });
-//   };
-
-//   const handleDeleteInvoice = (id) => {
-//     deleteInvoice(id)
-//       .then((response) => {
-//         const updatedInvoices = invoices.filter((invoice) => invoice.id !== id);
-//         setInvoices(updatedInvoices);
-//         message.success("Xóa hóa đơn thành công!");
-//       })
-//       .catch((error) => {
-//         message.error("Lỗi xóa hóa đơn!");
-//       });
-//   };
-
-//   const handleShowFormModal = () => {
-//     setSelectedInvoice(null); // Reset selected invoice khi tạo mới
-//     setIsEditing(false);
-//     setFormModalVisible(true);
-//   };
-//   const showEditModal = (record) => {
-//     setSelectedInvoice(record);
-//     setIsEditing(true);
-//     setFormModalVisible(true);
-//   };
-
-//   const handleFormSubmit = (values) => {
-//     if (isEditing) {
-//       // Nếu đang chỉnh sửa
-//       handleUpdateInvoice({
-//         id: selectedInvoice.id,
+//   const handleUpdateInvoiceDetail = async (values) => {
+//     try {
+//       await updateInvoiceDetail(editingInvoiceDetail.id, {
 //         ...values,
 //       });
-//     } else {
-//       // Nếu đang tạo mới
-//       handleCreateInvoice(values);
+//       message.success("Cập nhật chi tiết hóa đơn thành công!");
+//       loadInvoiceDetails();
+//       setIsInvoiceDetailModalVisible(false);
+//       setEditingInvoiceDetail(null);
+//     } catch (error) {
+//       message.error("Không thể cập nhật chi tiết hóa đơn");
 //     }
-//     setFormModalVisible(false);
 //   };
 
-//   const handleShowDetailModal = (invoice) => {
-//     setSelectedInvoice(invoice);
-//     setDetailModalVisible(true);
+//   const handleAddInvoiceDetail = async (invoiceId) => {
+//     setSelectedInvoiceId(invoiceId);
+//     setEditingInvoiceDetail(null);
+//     setIsInvoiceDetailModalVisible(true);
 //   };
 
-//   const handleCancelFormModal = () => {
-//     setFormModalVisible(false);
-//     setSelectedInvoice(null);
-//     setIsEditing(false);
+//   const handleDeleteInvoiceDetail = async (id) => {
+//     confirm({
+//       title: "Bạn có chắc chắn muốn xóa chi tiết hóa đơn này?",
+//       icon: <ExclamationCircleOutlined />,
+//       content: "Hành động này không thể hoàn tác.",
+//       okText: "Xóa",
+//       okType: "danger",
+//       cancelText: "Hủy",
+//       onOk: async () => {
+//         try {
+//           await deleteInvoiceDetail(id);
+//           message.success("Xóa chi tiết hóa đơn thành công");
+//           loadInvoiceDetails();
+//         } catch (error) {
+//           message.error("Có lỗi xảy ra khi xóa chi tiết hóa đơn");
+//         }
+//       },
+//     });
 //   };
 
-//   const handleCancelDetailModal = () => {
-//     setDetailModalVisible(false);
+//   const handleViewDetails = (invoice) => {
+//     setEditingInvoice(invoice);
+//     const details = invoiceDetails.filter(
+//       (detail) => detail.invoiceId === invoice.id
+//     );
+//     setInvoiceDetails(details);
+//     setIsDetailModalVisible(true);
 //   };
-
-//   const formatDateTime = (dateString) => {
-//     return new Date(dateString).toLocaleString("vi-VN");
+//   const handleEditInvoiceDetail = (detail) => {
+//     if (detail) {
+//       setEditingInvoiceDetail(detail);
+//       setIsInvoiceDetailModalVisible(true);
+//     } else {
+//       console.error("Không tìm thấy chi tiết hóa đơn để chỉnh sửa");
+//     }
 //   };
 //   const columns = [
+//     { title: "ID", dataIndex: "id", key: "id" },
 //     {
-//       title: "Mã hóa đơn",
-//       dataIndex: ["attributes", "invoiceNumber"],
-//       key: "invoiceNumber",
-//       render: (text) => <span>{text}</span>,
+//       title: "Mã Hóa Đơn",
+//       dataIndex: ["attributes", "MaHoaDon"],
+//       key: "MaHoaDon",
 //     },
 //     {
-//       title: "Khách hàng",
-//       dataIndex: ["attributes", "users_permissions_user", "data", "attributes"],
-//       key: "customer",
-//       render: (user) => {
-//         // Kiểm tra nếu user không tồn tại
-//         if (!user) return <span>N/A</span>;
-
-//         return (
-//           <span>
-//             {user.fullName || user.username || "Không có tên"}
-//             <br />
-//             <small>{user.email || "Không có email"}</small>
-//           </span>
-//         );
-//       },
+//       title: "Mã Khách hàng",
+//       dataIndex: ["attributes", "customerId", "data", "attributes", "MaKH"],
+//       key: "MaKH",
 //     },
 //     {
-//       title: "Chuyến đi",
-//       dataIndex: ["attributes", "trip", "data", "attributes"],
-//       key: "trip",
-//       render: (trip) => {
-//         // Kiểm tra nếu trip không tồn tại
-//         if (!trip) return <span>N/A</span>;
-
-//         return (
-//           <span>
-//             <div>
-//               Khởi hành:{" "}
-//               {trip.departureTime ? formatDateTime(trip.departureTime) : "N/A"}
-//             </div>
-//             <div>
-//               Đến: {trip.arrivalTime ? formatDateTime(trip.arrivalTime) : "N/A"}
-//             </div>
-//             <div>Thời gian: {trip.travelTime || "N/A"}</div>
-//           </span>
-//         );
-//       },
+//       title: "Mã Nhân viên",
+//       dataIndex: ["attributes", "employeeId", "data", "attributes", "MaNV"],
+//       key: "MaNV",
 //     },
 //     {
-//       title: "Ghế đã đặt",
-//       dataIndex: ["attributes", "seats", "data"],
-//       key: "seats",
-//       render: (seats) => (
-//         <span>
-//           {seats.map((seat) => (
-//             <Tag
-//               key={seat.id}
-//               color={seat.attributes.status === "đã bán" ? "red" : "green"}
-//             >
-//               Ghế {seat.attributes.seatNumber}
-//             </Tag>
-//           ))}
-//         </span>
-//       ),
+//       title: "Mã Lịch",
+//       dataIndex: [
+//         "attributes",
+//         "scheduleId",
+//         "data",
+//         "attributes",
+//         "IDSchedule",
+//       ],
+//       key: "IDSchedule",
 //     },
 //     {
-//       title: "Thanh toán",
-//       dataIndex: ["attributes", "payment", "data", "attributes"],
-//       key: "payment",
-//       render: (payment) => (
-//         <span>
-//           <div> {payment?.paymentMethod || "N/A"}</div>
-//           {/* <Tag color={payment?.status === "completed" ? "green" : "orange"}>
-//             {payment?.status}
-//           </Tag> */}
-//         </span>
-//       ),
-//     },
-//     {
-//       title: "Ngày tạo",
-//       dataIndex: ["attributes", "createdAt"],
-//       key: "createdAt",
-//       render: (date) => formatDateTime(date),
+//       title: "Phương Thức Thanh Toán",
+//       dataIndex: ["attributes", "PhuongThucThanhToan"],
+//       key: "PhuongThucThanhToan",
 //     },
 //     {
 //       title: "Trạng thái",
 //       dataIndex: ["attributes", "status"],
 //       key: "status",
-//       render: (status) => (
-//         <Tag color={status === "hoàn thành" ? "green" : "orange"}>{status}</Tag>
-//       ),
 //     },
 //     {
-//       title: "Tổng tiền",
-//       dataIndex: ["attributes", "totalAmount"],
-//       key: "totalAmount",
-//       render: (amount) => <span>{amount?.toLocaleString("vi-VN")} VNĐ</span>,
+//       title: "Ngày tạo",
+//       dataIndex: ["attributes", "createdAt"],
+//       key: "createdAt",
+//       render: (text) => moment(text).format("DD/MM/YYYY HH:mm"),
 //     },
 //     {
-//       title: "Thao tác",
+//       title: "Hành động",
 //       key: "action",
 //       render: (_, record) => (
-//         <Space size="middle">
+//         <Space>
 //           <Button
-//             type="primary"
-//             icon={<EyeOutlined />}
-//             onClick={() => handleShowDetailModal(record)}
-//           >
-//             Chi tiết
-//           </Button>
-//           <Button
-//             type="default"
-//             icon={<EditOutlined />}
-//             onClick={() => showEditModal(record)}
+//             onClick={() => {
+//               setEditingInvoice(record);
+//               setModalVisible(true);
+//             }}
 //           >
 //             Sửa
 //           </Button>
-//           <Button
-//             type="danger"
-//             icon={<DeleteOutlined />}
-//             onClick={() => handleDeleteInvoice(record.id)}
-//           >
+//           <Button danger onClick={() => handleDelete(record.id)}>
 //             Xóa
+//           </Button>
+//           <Button
+//             onClick={() => handleViewDetails(record)}
+//             style={{ marginLeft: 8 }}
+//           >
+//             Xem Chi Tiết
 //           </Button>
 //         </Space>
 //       ),
 //     },
 //   ];
 
-//   return (
-//     <div>
-//       <Button
-//         type="primary"
-//         icon={<PlusOutlined />}
-//         onClick={handleShowFormModal}
+//   const expandedRowRender = (record) => {
+//     const detailColumns = [
+//       { title: "ID", dataIndex: "id", key: "id" },
+
+//       {
+//         title: "Mã Chi Tiết Hóa Đơn",
+//         dataIndex: ["attributes", "MaChiTietHoaDon"],
+//         key: "detailCode",
+//       },
+//       {
+//         title: "Mã Hóa Đơn",
+//         dataIndex: ["attributes", "invoice", "data", "attributes", "MaHoaDon"],
+//         key: "invoiceCode",
+//         render: (text, record) =>
+//           record.attributes.invoice?.data?.attributes?.MaHoaDon || "N/A",
+//       },
+//       {
+//         title: "Mã chuyến xe ",
+//         dataIndex: ["attributes", "trip", "data", "MaTuyen"],
+//         key: "ticketCode",
+//         render: (text, record) =>
+//           record.attributes.trip?.data?.attributes?.MaTuyen || "N/A",
+//       },
+//       {
+//         title: "Mã Chi Tiết Giá",
+//         dataIndex: [
+//           "attributes",
+//           "detai_price",
+//           "data",
+//           "attributes",
+//           "MaChiTietGia",
+//         ],
+//         key: "priceDetailCode",
+//         render: (text, record) =>
+//           record.attributes.detai_price?.data?.attributes?.MaChiTietGia ||
+//           "N/A",
+//       },
+//       {
+//         title: "Số Lượng",
+//         dataIndex: ["attributes", "soluong"],
+//         key: "quantity",
+//       },
+//       {
+//         title: "Tổng Tiền",
+//         dataIndex: ["attributes", "tongTien"],
+//         key: "totalAmount",
+//         render: (text) => `${parseInt(text).toLocaleString()} VNĐ`,
+//       },
+//       {
+//         title: "Hành Động",
+//         key: "action",
+//         render: (_, detail) => (
+//           <Space>
+//             <Button onClick={() => handleEditInvoiceDetail(detail)}>Sửa</Button>
+//             <Button danger onClick={() => handleDeleteInvoiceDetail(detail.id)}>
+//               Xóa
+//             </Button>
+//           </Space>
+//         ),
+//       },
+//     ];
+
+//     const currentInvoice = invoices.find((invoice) => invoice.id === record.id);
+//     if (!currentInvoice) {
+//       console.error(`Không tìm thấy hóa đơn với ID: ${record.id}`);
+//       return <p>Không tìm thấy hóa đơn.</p>;
+//     }
+
+//     const detailInvoices =
+//       currentInvoice.attributes?.detail_invoices?.data || [];
+
+//     return (
+//       <div
+//         style={{
+//           margin: 16,
+//           backgroundColor: "#f0f0f0",
+//           padding: 16,
+//           borderRadius: 8,
+//         }}
 //       >
-//         Tạo hóa đơn mới
-//       </Button>
-//       <Table columns={columns} dataSource={invoices} loading={loading} />
-//       <InvoiceFormModal
-//         visible={formModalVisible}
-//         onCancel={handleCancelFormModal}
-//         onSubmit={handleFormSubmit}
-//         title={isEditing ? "Chỉnh sửa hóa đơn" : "Tạo hóa đơn mới"}
-//         initialValues={selectedInvoice?.attributes} // Truyền giá trị ban đầu khi chỉnh sửa
-//         isEditing={isEditing}
-//       />
-//       <InvoiceDetailModal
-//         visible={detailModalVisible}
-//         onCancel={handleCancelDetailModal}
-//         invoice={selectedInvoice}
-//       />
+//         <Button
+//           type="primary"
+//           onClick={() => handleAddInvoiceDetail(record.id)}
+//           style={{ marginBottom: 16 }}
+//         >
+//           Thêm Chi Tiết Hóa Đơn
+//         </Button>
+
+//         <Table
+//           columns={detailColumns}
+//           dataSource={detailInvoices}
+//           pagination={false}
+//           rowKey={(item) => item.id}
+//           rowClassName={(record, index) =>
+//             index % 2 === 0 ? "even-row" : "odd-row"
+//           }
+//           bordered
+//           style={{ marginTop: 16, backgroundColor: "#fff" }}
+//         />
+//       </div>
+//     );
+//   };
+
+//   return (
+//     <div className="admin-dashboard">
+//       <Sidebar />
+//       <div className="admin-content">
+//         <h1>Quản lý hóa đơn</h1>
+//         <Button
+//           type="primary"
+//           onClick={() => {
+//             setEditingInvoice(null);
+//             setModalVisible(true);
+//           }}
+//         >
+//           Thêm hóa đơn
+//         </Button>
+//         <Table
+//           columns={columns}
+//           dataSource={invoices}
+//           loading={loading}
+//           rowKey={(record) => record.id}
+//           expandable={{
+//             expandedRowRender: (record) => expandedRowRender(record),
+//             rowExpandable: () => true,
+//           }}
+//         />
+//         <InvoiceFormModal
+//           visible={modalVisible}
+//           onCancel={() => setModalVisible(false)}
+//           onCreate={handleCreate}
+//           onUpdate={handleUpdate}
+//           invoiceId={editingInvoice?.id}
+//           employees={employees}
+//           schedules={schedules}
+//           customers={customers}
+//         />
+
+//         <InvoiceDetailFormModal
+//           visible={isInvoiceDetailModalVisible}
+//           onCancel={() => setIsInvoiceDetailModalVisible(false)}
+//           onOk={
+//             editingInvoiceDetail
+//               ? handleUpdateInvoiceDetail
+//               : handleCreateInvoiceDetail
+//           }
+//           invoiceDetail={editingInvoiceDetail}
+//           trips={trips}
+//           priceDetails={priceDetails}
+//           invoices={invoices}
+//           setInvoiceDetails={setInvoiceDetails}
+//         />
+//         <InvoiceDetailModal
+//           visible={isDetailModalVisible}
+//           onCancel={() => setIsDetailModalVisible(false)}
+//           invoices={invoices}
+//           invoiceDetails={invoiceDetails}
+//         />
+//       </div>
 //     </div>
 //   );
 // };
 
 // export default InvoiceManagement;
-
-
-import React from 'react'
-
-const InvoiceManagement = () => {
-  return (
-    <div>InvoiceManagement</div>
-  )
-}
-
-export default InvoiceManagement

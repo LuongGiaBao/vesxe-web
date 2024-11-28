@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const axios = require("axios");
 const CryptoJS = require("crypto-js");
+const qs = require("qs");
 const moment = require("moment");
 const cors = require("cors");
 
@@ -14,8 +15,8 @@ const pendingBookings = new Map();
 const paymentStatusMap = new Map();
 
 const config = {
-  app_id: "2554",
-  key1: "sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn",
+  app_id: "2553",
+  key1: "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL",
   key2: "trMrHtvjo6myautxDUiAcYsVtaeQ8nhf",
   endpoint: "https://sb-openapi.zalopay.vn/v2/create",
 };
@@ -89,25 +90,84 @@ app.post("/payment", async (req, res) => {
   }
 });
 
+app.post("/callback", (req, res) => {
+  let result = {};
+
+  try {
+    let dataStr = req.body.data;
+    let reqMac = req.body.mac;
+
+    let mac = CryptoJS.HmacSHA256(dataStr, config.key2).toString();
+    console.log("mac =", mac);
+
+    // kiểm tra callback hợp lệ (đến từ ZaloPay server)
+    if (reqMac !== mac) {
+      // callback không hợp lệ
+      result.return_code = -1;
+      result.return_message = "mac not equal";
+    } else {
+      // thanh toán thành công
+      // merchant cập nhật trạng thái cho đơn hàng
+      let dataJson = JSON.parse(dataStr, config.key2);
+      console.log(
+        "update order's status = success where app_trans_id =",
+        dataJson["app_trans_id"]
+      );
+
+      result.return_code = 1;
+      result.return_message = "success";
+    }
+  } catch (ex) {
+    result.return_code = 0; // ZaloPay server sẽ callback lại (tối đa 3 lần)
+    result.return_message = ex.message;
+  }
+
+  // thông báo kết quả cho ZaloPay server
+  res.json(result);
+});
+
 // Endpoint để kiểm tra trạng thái thanh toán
 app.get("/payment/status/:appTransID", async (req, res) => {
   const { appTransID } = req.params;
 
-  const bookingDetails = pendingBookings.get(appTransID);
-  const status = paymentStatusMap.get(appTransID);
+  try {
+    // Kiểm tra trạng thái thanh toán từ ZaloPay
+    const postData = {
+      app_id: config.app_id,
+      app_trans_id: appTransID,
+    };
 
-  if (bookingDetails) {
-    res.json({
-      status: status || "pending",
-      bookingDetails: {
-        ...bookingDetails,
-        paymentStatus: status || "pending"
-      }
+    const data = `${postData.app_id}|${postData.app_trans_id}|${config.key1}`;
+    postData.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+    const response = await axios.post(config.endpoint, null, {
+      params: postData,
     });
-  } else {
-    res.status(404).json({
-      status: "not_found",
-      message: "Không tìm thấy thông tin đặt vé",
+
+    // Cập nhật trạng thái dựa trên phản hồi từ ZaloPay
+    const status = response.data.return_code === 1 ? "completed" : "pending";
+    paymentStatusMap.set(appTransID, status);
+
+    const bookingDetails = pendingBookings.get(appTransID);
+    if (bookingDetails) {
+      bookingDetails.paymentStatus = status;
+      pendingBookings.set(appTransID, bookingDetails);
+
+      res.json({
+        status: status,
+        bookingDetails: bookingDetails,
+      });
+    } else {
+      res.status(404).json({
+        status: "not_found",
+        message: "Không tìm thấy thông tin đặt vé",
+      });
+    }
+  } catch (error) {
+    console.error("Error checking payment status:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Lỗi khi kiểm tra trạng thái thanh toán",
     });
   }
 });
@@ -121,17 +181,25 @@ app.post("/payment/callback", (req, res) => {
     // Cập nhật trạng thái thanh toán
     const newStatus = status === 1 ? "completed" : "failed";
     paymentStatusMap.set(app_trans_id, newStatus);
-    
+
     // Cập nhật booking details với trạng thái mới
     const bookingDetails = pendingBookings.get(app_trans_id);
     if (bookingDetails) {
       bookingDetails.paymentStatus = newStatus;
       pendingBookings.set(app_trans_id, bookingDetails);
+      console.log(
+        "Updated payment status for:",
+        app_trans_id,
+        "to:",
+        newStatus
+      );
     }
 
     res.json({ return_code: 1, return_message: "success" });
   } else {
-    res.status(404).json({ return_code: 0, return_message: "Transaction not found" });
+    res
+      .status(404)
+      .json({ return_code: 0, return_message: "Transaction not found" });
   }
 });
 
@@ -144,11 +212,40 @@ app.get("/tickets/:userId", (req, res) => {
     .map(([appTransID, booking]) => ({
       id: appTransID,
       ...booking,
-      paymentStatus: paymentStatusMap.get(appTransID) || "pending"
+      paymentStatus: paymentStatusMap.get(appTransID) || "pending",
     }));
 
   res.json(userTickets);
 });
+
+const checkPaymentStatus = async (appTransId) => {
+  let postData = {
+    app_id: config.app_id,
+    app_trans_id: appTransId, // Nhập app_trans_id
+  };
+
+  // Tạo MAC
+  let data = `${postData.app_id}|${postData.app_trans_id}|${config.key1}`; // appid|app_trans_id|key1
+  postData.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+  let postConfig = {
+    method: "post",
+    url: config.endpoint,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    data: qs.stringify(postData),
+  };
+
+  try {
+    const response = await axios(postConfig);
+    console.log("Payment Status Response:", JSON.stringify(response.data));
+    return response.data; // Trả về dữ liệu phản hồi
+  } catch (error) {
+    console.error("Error checking payment status:", error);
+    throw error; // Ném lỗi để xử lý bên ngoài nếu cần
+  }
+};
 
 app.listen(5000, () => {
   console.log("Server is running on port 5000");

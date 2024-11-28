@@ -1,156 +1,165 @@
 import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  DatePicker,
-  InputNumber,
-  Button,
-  message,
-} from "antd";
-import { fetchAllUsers } from "../api/UserApi";
-import { fetchAllTrips } from "../api/TripApi";
+import { Modal, Form, Input, Select } from "antd";
+import { fetchAllCustomers } from "../api/CustomerApi";
+import { fetchAllInvoices } from "../api/InvoicesApi";
+
 const { Option } = Select;
 
 const InvoiceFormModal = ({
   visible,
   onCancel,
-  onSubmit,
-  initialValues,
-  title,
-
-  isEditing,
+  onCreate,
+  onUpdate,
+  customers,
+  employees,
+  schedules,
+  invoiceId,
 }) => {
   const [form] = Form.useForm();
-  const [users, setUsers] = useState([]);
-  const [trips, setTrips] = useState([]);
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [usersResponse, tripsResponse] = await Promise.all([
-          fetchAllUsers(),
-          fetchAllTrips(),
-        ]);
-        setUsers(usersResponse.data);
-        setTrips(tripsResponse.data);
-      } catch (error) {
-        message.error("Không thể tải dữ liệu");
-      }
-    };
-    loadData();
-  }, []);
+  const [customerList, setCustomerList] = useState([]);
+  const [invoice, setInvoice] = useState(null);
 
   useEffect(() => {
-    if (visible && initialValues) {
+    loadCustomers();
+
+    if (invoiceId) {
+      loadInvoiceById();
+    } else {
+      form.resetFields(); // Reset form nếu không có invoiceId
+    }
+  }, [invoiceId]);
+
+  const loadInvoiceById = async () => {
+    try {
+      const response = await fetchAllInvoices();
+      const invoiceData = response.data?.find((inv) => inv.id === invoiceId);
+      if (invoiceData) {
+        setInvoice(invoiceData);
+        form.setFieldsValue({
+          MaHoaDon: invoiceData.attributes.MaHoaDon,
+          customerId: invoiceData.attributes.customerId?.data?.id || null, // Lấy ID khách hàng
+          employeeId: invoiceData.attributes.employeeId?.data?.id || null, // Lấy ID nhân viên
+          scheduleId: invoiceData.attributes.scheduleId?.data?.id || null, // Lấy ID lịch
+          PhuongThucThanhToan: invoiceData.attributes.PhuongThucThanhToan,
+          status: invoiceData.attributes.status,
+        });
+      }
+    } catch (error) {
+      console.error("Lỗi tải hóa đơn:", error);
+    }
+  };
+
+  const loadCustomers = async () => {
+    try {
+      const response = await fetchAllCustomers();
+      const customerData = response.data?.data || [];
+      setCustomerList(customerData);
+    } catch (error) {
+      console.error("Lỗi tải danh sách khách hàng:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (invoice) {
       form.setFieldsValue({
-        invoiceNumber: initialValues.invoiceNumber,
-        status: initialValues.status,
-        totalAmount: initialValues.totalAmount,
-        userId: initialValues.users_permissions_user?.data?.id, // Thêm userId
-        tripId: initialValues.trip?.data?.id,
+        MaHoaDon: invoice.attributes.MaHoaDon,
+        customerId: invoice.attributes.customerId?.data?.id || null, // Lấy ID khách hàng
+        employeeId: invoice.attributes.employeeId?.data?.id || null, // Lấy ID nhân viên
+        scheduleId: invoice.attributes.scheduleId?.data?.id || null,
+        PhuongThucThanhToan: invoice.attributes.PhuongThucThanhToan,
+        status: invoice.attributes.status,
       });
     } else {
       form.resetFields();
     }
-  }, [visible, initialValues, form]);
-  const handleSubmit = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        onSubmit(values);
-        form.resetFields();
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
+  }, [invoice, form]);
+
+  const handleFinish = (values) => {
+    if (invoice) {
+      onUpdate(values);
+    } else {
+      onCreate(values);
+    }
   };
-  const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString("vi-VN");
-  };
+
   return (
     <Modal
       visible={visible}
-      title={title || "Tạo hóa đơn mới"}
+      title={invoice ? "Chỉnh sửa hóa đơn" : "Thêm hóa đơn"}
+      okText={invoice ? "Cập nhật" : "Thêm"}
       onCancel={onCancel}
-      footer={[
-        <Button key="back" onClick={onCancel}>
-          Hủy
-        </Button>,
-        <Button key="submit" type="primary" onClick={handleSubmit}>
-          {initialValues ? "Cập nhật" : "Tạo mới"}
-        </Button>,
-      ]}
+      onOk={() => form.submit()}
+      centered
     >
-      <Form form={form} layout="vertical" initialValues={initialValues}>
+      <Form form={form} layout="vertical" onFinish={handleFinish}>
         <Form.Item
-          name="invoiceNumber"
-          label="Mã hóa đơn"
+          name="MaHoaDon"
+          label="Mã Hóa Đơn"
           rules={[{ required: true, message: "Vui lòng nhập mã hóa đơn!" }]}
         >
           <Input />
         </Form.Item>
+
+        <Form.Item name="customerId" label="Mã Khách Hàng">
+          <Select placeholder="Chọn khách hàng">
+            {customers?.map((customer) => (
+              <Select.Option key={customer.id} value={customer.id}>
+                {customer.MaKH}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
         <Form.Item
-          name="userId"
-          label="Khách hàng"
-          rules={[{ required: true, message: "Vui lòng chọn khách hàng!" }]}
+          name="employeeId"
+          label="Nhân viên"
+          rules={[{ required: true, message: "Vui lòng chọn nhân viên!" }]}
         >
-          <Select>
-            {users.map((user) => (
-              <Option key={user.id} value={user.id}>
-                {user.attributes.fullName || user.attributes.username}
+          <Select placeholder="Chọn nhân viên">
+            {employees?.map((employee) => (
+              <Option key={employee.id} value={employee.id}>
+                {employee.MaNV}
               </Option>
             ))}
           </Select>
         </Form.Item>
+
         <Form.Item
-          name="tripId"
-          label="Chuyến đi"
-          rules={[{ required: true, message: "Vui lòng chọn chuyến đi!" }]}
+          name="scheduleId"
+          label="Mã Lịch"
+          rules={[{ required: true, message: "Vui lòng chọn mã lịch!" }]}
         >
-          <Select>
-            {trips.map((trip) => (
-              <Option key={trip.id} value={trip.id}>
-                {`${trip.attributes.departureLocation} - ${
-                  trip.attributes.arrivalLocation
-                } (${formatDateTime(trip.attributes.departureTime)})`}
+          <Select placeholder="Chọn lịch">
+            {schedules?.data?.map((schedule) => (
+              <Option key={schedule.id} value={schedule.id}>
+                {schedule.attributes?.IDSchedule}{" "}
               </Option>
             ))}
           </Select>
         </Form.Item>
+
+        <Form.Item
+          name="PhuongThucThanhToan"
+          label="Phương Thức Thanh Toán"
+          rules={[
+            {
+              required: true,
+              message: "Vui lòng chọn phương thức thanh toán!",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+
         <Form.Item
           name="status"
           label="Trạng thái"
           rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
         >
           <Select>
-            <Option value="hoàn thành">Hoàn thành</Option>
-            <Option value="chờ thanh toán">Chờ thanh toán</Option>
-            <Option value="đã hủy">Đã hủy</Option>
+            <Option value="Thành công">Thành công</Option>
+            <Option value="Không thành công">Không thành công</Option>
           </Select>
-        </Form.Item>
-        <Form.Item
-          name="totalAmount"
-          label="Tổng tiền"
-          rules={[{ required: true, message: "Vui lòng nhập tổng tiền!" }]}
-        >
-          <InputNumber
-            formatter={(value) =>
-              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-        <Form.Item name="paidAt" label="Ngày thanh toán">
-          <DatePicker
-            showTime
-            format="YYYY-MM-DD HH:mm:ss"
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-        <Form.Item name="notes" label="Ghi chú">
-          <Input.TextArea />
         </Form.Item>
       </Form>
     </Modal>

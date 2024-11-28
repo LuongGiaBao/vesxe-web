@@ -78,6 +78,16 @@ const BusManagement = () => {
 
   const columns = [
     {
+      title: "ID", // Thay đổi từ "ID" thành "ID"
+      dataIndex: ["id"], // Đây là nơi bạn lấy ID từ dữ liệu
+      key: "id",
+    },
+    {
+      title: "Mã Xe",
+      dataIndex: ["attributes", "MaXe"],
+      render: (text) => text,
+    },
+    {
       title: "Biển Số",
       dataIndex: ["attributes", "BienSo"],
       key: "BienSo",

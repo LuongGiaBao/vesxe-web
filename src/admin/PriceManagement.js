@@ -109,6 +109,14 @@ const PriceManagement = () => {
   };
 
   const handleDeletePrice = async (id) => {
+    const priceToDelete = prices.find((price) => price.id === id);
+
+    // Kiểm tra trạng thái trước khi xác nhận xóa
+    if (priceToDelete && priceToDelete.attributes.status === "Hoạt động") {
+      message.error("Không thể xóa bảng giá đang hoạt động.");
+      return;
+    }
+
     confirm({
       title: "Bạn có chắc chắn muốn xóa bảng giá này?",
       icon: <ExclamationCircleOutlined />,
@@ -158,7 +166,25 @@ const PriceManagement = () => {
     }
   };
 
-  const handleDeletePriceDetail = async (id) => {
+  const handleDeletePriceDetail = async (id, record) => {
+    const detailPrices = currentPrice?.attributes?.detai_prices?.data || [];
+    const priceDetailToDelete = detailPrices.find((detail) => detail.id === id);
+
+    // Kiểm tra xem chi tiết giá có tồn tại không
+    if (!priceDetailToDelete) {
+      message.error("Chi tiết giá không tồn tại.");
+      return;
+    }
+
+    const currentPrice = prices.find((price) => price.id === record.id);
+
+    // Kiểm tra trạng thái bảng giá trước khi xác nhận xóa chi tiết
+    if (currentPrice && currentPrice.attributes.status === "Hoạt động") {
+      message.error("Không thể xóa chi tiết giá vì bảng giá đang hoạt động.");
+      return;
+    }
+
+    // Tiến hành xóa chi tiết giá
     confirm({
       title: "Bạn có chắc chắn muốn xóa chi tiết giá này?",
       icon: <ExclamationCircleOutlined />,
@@ -250,108 +276,27 @@ const PriceManagement = () => {
           >
             Sửa
           </Button>
-          <Button danger onClick={() => handleDeletePrice (record.id)}>
+          <Button danger onClick={() => handleDeletePrice(record.id)}>
             Xóa
           </Button>
-          <Button
+          {/* <Button
             onClick={() => {
               setSelectedPrice(record);
               setIsDetailModalVisible(true);
             }}
           >
             Chi tiết
-          </Button>
+          </Button> */}
         </Space>
       ),
     },
   ];
 
-  //     {
-  //       title: "Mã Chi Tiết Giá",
-  //       dataIndex: ["attributes", "MaChiTietGia"],
-  //       key: "MaChiTietGia",
-  //     },
-  //     {
-  //       title: "Tuyến",
-  //       dataIndex: ["attributes", "trip", "data"],
-  //       key: "trip",
-  //       render: (trip) => {
-  //         if (!trip?.attributes) return "Không có thông tin";
-  //         const departure =
-  //           trip.attributes.departure_location_id?.data?.attributes?.name ||
-  //           "N/A";
-  //         const arrival =
-  //           trip.attributes.arrival_location_id?.data?.attributes?.name ||
-  //           "N/A";
-  //         return `${departure} → ${arrival}`;
-  //       },
-  //     },
-  //     {
-  //       title: "Giá",
-  //       dataIndex: ["attributes", "Gia"],
-  //       key: "Gia",
-  //       render: (text) => `${parseInt(text).toLocaleString()} VNĐ`,
-  //     },
-  //     {
-  //       title: "Hành động",
-  //       key: "action",
-  //       render: (_, detail) => (
-  //         <Space>
-  //           <Button
-  //             onClick={() => {
-  //               setEditingPriceDetail(detail);
-  //               setIsPriceDetailModalVisible(true);
-  //             }}
-  //           >
-  //             Sửa
-  //           </Button>
-  //           <Button
-  //             type="primary"
-  //             danger
-  //             onClick={() => handleDeletePriceDetail(detail.id)}
-  //           >
-  //             Xóa
-  //           </Button>
-  //         </Space>
-  //       ),
-  //     },
-  //   ];
-  //   const priceDetails = priceDetails.filter(
-  //     (detail) => detail.attributes.ticket_price?.data?.id === record.id
-  //   );
-
-  //   return (
-  //     <div style={{ margin: 16 }}>
-  //       <Button
-  //         onClick={() => handleAddPriceDetail(record.id)}
-  //         style={{ marginBottom: 16 }}
-  //       >
-  //         Thêm Chi Tiết Giá
-  //       </Button>
-
-  //       <Table
-  //         columns={detailColumns}
-  //         dataSource={record.attributes.price_details}
-  //         pagination={false}
-  //       />
-  //       <PriceDetailFormModal
-  //         visible={isDetailModalVisible}
-  //         onCancel={() => {
-  //           setIsDetailModalVisible(false);
-  //           setSelectedPriceForDetails(null);
-  //         }}
-  //         onOk={handleCreatePriceDetail}
-  //         priceId={selectedPriceForDetails}
-  //       />
-  //     </div>
-  //   );
-  // };
-
   const expandedRowRender = (record) => {
     const detailColumns = [
       {
-        title: "ID", // Thay đổi từ "ID" thành "ID"
-        dataIndex: ["id"], // Đây là nơi bạn lấy ID từ dữ liệu
+        title: "ID",
+        dataIndex: ["id"],
         key: "id",
       },
       {
@@ -385,23 +330,43 @@ const PriceManagement = () => {
       {
         title: "Hành động",
         key: "action",
-        render: (_, detail) => (
-          <Space>
-            <Button
-              onClick={() => {
-                setEditingPriceDetail(detail);
-                setIsPriceDetailModalVisible(true);
-              }}
-            >
-              Sửa
-            </Button>
-            <Button danger onClick={() => handleDeletePriceDetail(detail.id)}>
-              Xóa
-            </Button>
-          </Space>
-        ),
+        render: (_, detail) => {
+          const currentPrice = prices.find((price) => price.id === record.id);
+
+          // Kiểm tra trạng thái của bảng giá
+          const isPriceActive =
+            currentPrice && currentPrice.attributes.status === "Hoạt động";
+
+          return (
+            <Space>
+              <Button
+                onClick={() => {
+                  setEditingPriceDetail(detail);
+                  setIsPriceDetailModalVisible(true);
+                }}
+              >
+                Sửa
+              </Button>
+              <Button
+                danger
+                onClick={() => {
+                  if (isPriceActive) {
+                    message.error(
+                      "Không thể xóa chi tiết giá vì bảng giá đang hoạt động."
+                    );
+                  } else {
+                    handleDeletePriceDetail(detail.id, detail);
+                  }
+                }}
+              >
+                Xóa
+              </Button>
+            </Space>
+          );
+        },
       },
     ];
+
     const currentPrice = prices.find((price) => price.id === record.id);
     const detailPrices = currentPrice?.attributes?.detai_prices?.data || [];
 

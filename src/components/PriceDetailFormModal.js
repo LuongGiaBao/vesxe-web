@@ -11,6 +11,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { fetchAllTrips } from "../api/TripApi";
 import {
+  checkDuplicatePriceDetail,
   createPriceDetail,
   deletePriceDetail,
   updatePriceDetail,
@@ -28,7 +29,7 @@ const PriceDetailFormModal = ({
   const [form] = Form.useForm();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
     loadTrips();
     if (editingPriceDetail) {
@@ -55,8 +56,20 @@ const PriceDetailFormModal = ({
     }
   };
   const handleOk = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const values = await form.validateFields();
+      // Kiểm tra trùng lặp dữ liệu
+      const isDuplicate = await checkDuplicatePriceDetail(
+        values.MaChiTietGia,
+        values.trip,
+        values.Gia
+      );
+      if (isDuplicate) {
+        message.error("Chi tiết giá với tuyến và giá này đã tồn tại!");
+        return;
+      }
       const submitData = {
         data: {
           MaChiTietGia: values.MaChiTietGia,
@@ -99,28 +112,39 @@ const PriceDetailFormModal = ({
     }
   };
 
-  
-  const handleMaGiaChange = (e) => {
-    let value = e.target.value;
+  const handleMaGiaChange = async (e) => {
+    let value = e.target.value.trim(); // Loại bỏ khoảng trắng thừa
 
-    // Nếu mã giá bắt đầu bằng "MGMG", chỉ giữ lại một "MG"
-    if (value.startsWith("MCTGMCTG")) {
-      value = "MCTG" + value.substring(4);
-    }
-    // Nếu mã giá không bắt đầu bằng "MG", thêm "MG" vào đầu
-    else if (!value.startsWith("MCTG")) {
-      value = "MCTG" + value;
-    }
+    // Kiểm tra xem giá trị có bắt đầu với "MCTG" hay không
+    if (value && !value.startsWith("MCTG")) {
+      // Nếu mã không bắt đầu bằng "MCTG", tự động thêm vào đầu
+      form.setFieldsValue({ MaChiTietGia: "MCTG" + value });
+    } else if (value && value.startsWith("MCTG")) {
+      // Nếu mã bắt đầu bằng "MCTG", chỉ giữ nguyên phần số sau "MCTG"
+      let numberPart = value.substring(4); // Lấy phần số sau "MCTG"
 
-    // Cập nhật giá trị trong form
-    form.setFieldsValue({ MaGia: value });
+      // Kiểm tra xem phần số có phải là số hay không
+      if (!/^\d+$/.test(numberPart)) {
+        numberPart = "01"; // Nếu phần số không hợp lệ, mặc định thành "01"
+      }
+
+      // Đảm bảo số có ít nhất 2 chữ số
+      if (numberPart.length === 1) {
+        numberPart = "0" + numberPart;
+      }
+
+      // Cập nhật lại giá trị mã chi tiết giá
+      form.setFieldsValue({ MaChiTietGia: "MCTG" + numberPart });
+    }
   };
+
   return (
     <Modal
       title={editingPriceDetail ? "Cập nhật chi tiết giá" : "Thêm chi tiết giá"}
       visible={visible}
       onCancel={onCancel}
       onOk={handleOk}
+      centered
       footer={[
         <Button
           key="delete"
@@ -144,12 +168,12 @@ const PriceDetailFormModal = ({
           rules={[
             { required: true, message: "Vui lòng nhập mã chi tiết giá!" },
             {
-              min: 3,
-              message: "Vui lòng nhập số sau MG",
+              min: 6,
+              message: "Vui lòng nhập số sau MCTG",
             },
           ]}
         >
-           <Input
+          <Input
             placeholder="Ví dụ: MCTG001"
             onChange={handleMaGiaChange}
             value={form.getFieldValue("MaChiTietGia")}

@@ -5,6 +5,7 @@ import {
   Route,
   useNavigate,
   BrowserRouter as Router,
+  useLocation,
 } from "react-router-dom";
 import GuestHomePage from "./pages/GuestHomePage";
 import AdminDashboard from "./admin/AdminDashboard";
@@ -33,10 +34,14 @@ import InvoicePage from "./pages/InvoicePage";
 import MyTicketsPage from "./pages/MyTicketsPage";
 import ScheduleManagement from "./admin/ScheduleManagement";
 import BusManagement from "./admin/BusManagement";
+import CustomerManagement from "./admin/CustomerManagement";
+import CustomerReports from "./admin/Reports/CustomerReports";
+import EmployeeReports from "./admin/Reports/EmployeeReports";
+import PromotionReports from "./admin/Reports/PromotionReports";
 
 function App() {
   const navigate = useNavigate();
-
+  const location = useLocation();
   // useEffect(() => {
   //   // Kiểm tra cổng hiện tại
   //   const port = window.location.port;
@@ -50,6 +55,13 @@ function App() {
   //   }
   // }, [navigate]);
 
+  useEffect(() => {
+    // Ngăn trình duyệt cuộn lên đầu khi route thay đổi
+    const sidebar = document.querySelector(".sidebar");
+    if (sidebar) {
+      sidebar.scrollTop = sidebar.scrollTop;
+    }
+  }, [location]);
   return (
     <div className="App">
       <Routes>
@@ -93,6 +105,19 @@ function App() {
         <Route path="/my-tickets" element={<MyTicketsPage />} />
         <Route path="/admin/schedules" element={<ScheduleManagement />} />
         <Route path="/admin/buses" element={<BusManagement />} />
+        <Route path="/admin/customers" element={<CustomerManagement />} />
+        <Route
+          path="/admin/reports/CustomerReports"
+          element={<CustomerReports />}
+        />
+        <Route
+          path="/admin/reports/EmployeeReports"
+          element={<EmployeeReports />}
+        />
+        <Route
+          path="/admin/reports/PromotionReports"
+          element={<PromotionReports />}
+        />
       </Routes>
     </div>
   );

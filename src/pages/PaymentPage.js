@@ -1,5 +1,3 @@
-
-
 // PaymentPage.js
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -23,14 +21,16 @@ const PaymentPage = () => {
       }
 
       // If not in location state, try localStorage
-      const storedBookingDetails = localStorage.getItem('pendingBookingDetails');
+      const storedBookingDetails = localStorage.getItem(
+        "pendingBookingDetails"
+      );
       if (storedBookingDetails) {
         try {
           const parsedDetails = JSON.parse(storedBookingDetails);
           setBookingDetails(parsedDetails);
         } catch (error) {
-          console.error('Error parsing booking details:', error);
-          message.error('Có lỗi khi tải thông tin đặt vé');
+          console.error("Error parsing booking details:", error);
+          message.error("Có lỗi khi tải thông tin đặt vé");
         }
       }
     };
@@ -43,10 +43,9 @@ const PaymentPage = () => {
   };
 
   const handlePayment = async () => {
-    const isLoggedIn = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!isLoggedIn) {
-      // Lưu thông tin đặt vé vào localStorage trước khi chuyển hướng
+    if (!user) {
       localStorage.setItem(
         "pendingBookingDetails",
         JSON.stringify(bookingDetails)
@@ -58,26 +57,71 @@ const PaymentPage = () => {
 
     try {
       setLoading(true);
+      // Tính toán số tiền cuối cùng sau khi áp dụng khuyến mãi
+      const finalAmount = bookingDetails.promotion
+        ? bookingDetails.totalAmount - bookingDetails.promotion.discountAmount
+        : bookingDetails.totalAmount;
+
       const response = await axios.post("http://localhost:5000/payment", {
-        amount: bookingDetails.totalAmount,
+        amount: finalAmount,
         userId: bookingDetails.customerInfo.email,
         description: `Thanh toán vé xe từ ${bookingDetails.tripInfo.departureStation} đến ${bookingDetails.tripInfo.destinationStation}`,
-        bookingDetails: bookingDetails,
+        bookingDetails: {
+          ...bookingDetails,
+          finalAmount: finalAmount,
+          promotionDetails: bookingDetails.promotion
+            ? {
+                promotionId: bookingDetails.promotion.promotionId,
+                promotionCode: bookingDetails.promotion.promotionCode,
+                discountAmount: bookingDetails.promotion.discountAmount,
+                description: bookingDetails.promotion.description,
+              }
+            : null,
+        },
       });
 
-      if (response.data && response.data.order_url && response.data.appTransID) {
-        // Lưu thông tin thanh toán
+      if (
+        response.data &&
+        response.data.order_url &&
+        response.data.appTransID
+      ) {
         localStorage.setItem("currentAppTransID", response.data.appTransID);
         localStorage.setItem("paymentInitiated", "true");
-        
+
         const updatedBookingDetails = {
           ...bookingDetails,
           paymentStatus: "pending",
-          appTransID: response.data.appTransID
+          appTransID: response.data.appTransID,
+          finalAmount: finalAmount,
         };
-        localStorage.setItem("bookingDetails", JSON.stringify(updatedBookingDetails));
-        // Chuyển hướng đến trang thanh toán ZaloPay
-        window.location.href = response.data.order_url;
+        localStorage.setItem(
+          "bookingDetails",
+          JSON.stringify(updatedBookingDetails)
+        );
+
+        const paymentWindow = window.open(response.data.order_url, "_blank");
+
+        const checkPaymentStatus = setInterval(async () => {
+          try {
+            const statusResponse = await axios.get(
+              `http://localhost:5000/payment/status/${response.data.appTransID}`
+            );
+            if (statusResponse.data.status === "completed") {
+              clearInterval(checkPaymentStatus);
+              message.success("Thanh toán thành công!");
+              navigate("/booking-success", {
+                state: { bookingDetails: statusResponse.data.bookingDetails },
+              });
+            } else if (statusResponse.data.status === "failed") {
+              clearInterval(checkPaymentStatus);
+              message.error("Thanh toán thất bại. Vui lòng thử lại.");
+            }
+          } catch (error) {
+            console.error("Error checking payment status:", error);
+          }
+        }, 5000);
+
+        return () => clearInterval(checkPaymentStatus);
       } else {
         throw new Error("Invalid payment response");
       }
@@ -99,13 +143,22 @@ const PaymentPage = () => {
             </button>
             <h1>Thanh toán</h1>
           </div>
-          <div className="no-booking">
-            Không tìm thấy thông tin đặt vé
-          </div>
+          <div className="no-booking">Không tìm thấy thông tin đặt vé</div>
         </div>
       </div>
     );
   }
+
+  const formatDateTime = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return `${day}-${month}-${year} ${hours} giờ ${minutes} phút`;
+  };
 
   return (
     <div className="payment-page">
@@ -131,11 +184,12 @@ const PaymentPage = () => {
                   {bookingDetails.tripInfo.destinationStation}
                 </p>
                 <p>
-                  <strong>Thời gian:</strong>{" "}
-                  {bookingDetails.tripInfo.departureTime}
+                  <strong>Thời gian khởi hành :</strong>{" "}
+                  {formatDateTime(bookingDetails.tripInfo.departureTime)}
                 </p>
                 <p>
-                  <strong>Số ghế:</strong> {bookingDetails.selectedSeats.join(", ")}
+                  <strong>Số ghế:</strong>{" "}
+                  {bookingDetails.selectedSeats.join(", ")}
                 </p>
               </div>
             </div>
@@ -144,8 +198,7 @@ const PaymentPage = () => {
               <h2>Thông tin khách hàng</h2>
               <div className="info-box">
                 <p>
-                  <strong>Họ tên:</strong>{" "}
-                  {bookingDetails.customerInfo.fullName}
+                  <strong>Họ tên:</strong> {bookingDetails.customerInfo.name}
                 </p>
                 <p>
                   <strong>Email:</strong> {bookingDetails.customerInfo.email}
@@ -165,6 +218,26 @@ const PaymentPage = () => {
                 <strong>Tổng tiền:</strong>{" "}
                 {bookingDetails.totalAmount.toLocaleString()}đ
               </p>
+              {bookingDetails.promotion && (
+                <>
+                  <p>
+                    <strong>Mã khuyến mãi:</strong>{" "}
+                    {bookingDetails.promotion.promotionCode}
+                  </p>
+                  <p>
+                    <strong>Giảm giá:</strong>{" "}
+                    {bookingDetails.promotion.discountAmount.toLocaleString()}đ
+                  </p>
+                  <p className="final-amount">
+                    <strong>Thành tiền:</strong>{" "}
+                    {(
+                      bookingDetails.totalAmount -
+                      bookingDetails.promotion.discountAmount
+                    ).toLocaleString()}
+                    đ
+                  </p>
+                </>
+              )}
             </div>
 
             <button

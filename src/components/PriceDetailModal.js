@@ -15,6 +15,7 @@ const PriceDetailModal = ({ visible, onCancel, price }) => {
       onCancel={onCancel}
       footer={null}
       width={700}
+      centered
     >
       <Descriptions bordered column={1}>
         {/* Thông tin chung về giá */}

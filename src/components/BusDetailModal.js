@@ -18,6 +18,9 @@ const BusDetailModal = ({ visible, onCancel, bus }) => {
       centered={true}
     >
       <Descriptions bordered column={1}>
+        <Descriptions.Item label="Mã Xe">
+          {attributes.MaXe || "N/A"}
+        </Descriptions.Item>
         <Descriptions.Item label="Biển Số Xe">
           {attributes.BienSo || "N/A"}
         </Descriptions.Item>

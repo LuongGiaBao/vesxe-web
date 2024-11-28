@@ -96,3 +96,21 @@ export const getPriceDetailsByTripId = async (tripId) => {
     throw error;
   }
 };
+
+// PriceDetailApi.js
+export const checkDuplicatePriceDetail = async (maChiTietGia, tripId, gia) => {
+  try {
+    // Truy vấn API với các bộ lọc cho MaChiTietGia, Gia và tripId
+    const response = await apiClient.get(
+      `/detai-prices?filters[MaChiTietGia][$eq]=${maChiTietGia}&filters[Gia][$eq]=${gia}&filters[trip][id][$eq]=${tripId}`
+    );
+    const data = await response.json();
+
+    // Kiểm tra xem có bản ghi nào trùng lặp không
+    const isDuplicate = data.data.length > 0;
+    return isDuplicate;
+  } catch (error) {
+    console.error("Error checking for duplicates:", error);
+    return false; // Trả về false nếu có lỗi
+  }
+};

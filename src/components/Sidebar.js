@@ -1,20 +1,39 @@
 // src/components/Sidebar.js
-import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../assets/Sidebar.css";
 
 const Sidebar = ({}) => {
   const navigate = useNavigate(); // Khai báo hook navigate
   const adminName = localStorage.getItem("adminName");
-
+  const location = useLocation();
+  const sidebarRef = useRef(null);
+  const [isReportsMenuOpen, setIsReportsMenuOpen] = useState(false);
   const onLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("adminName"); // Xóa tên admin khi đăng xuất
     navigate("/admin/login");
   };
+  const toggleReportsMenu = () => {
+    setIsReportsMenuOpen(!isReportsMenuOpen);
+  };
+  useEffect(() => {
+    // Nếu đang ở trong một route của "Thống kê", mở menu
+    if (location.pathname.startsWith("/admin/reports")) {
+      setIsReportsMenuOpen(true);
+    }
+  }, [location.pathname]);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (sidebarRef.current) {
+        sidebarRef.current.scrollTop = sidebarRef.current.scrollTop;
+      }
+    };
 
+    handleScroll();
+  }, []);
   return (
-    <div className="sidebar">
+    <div ref={sidebarRef} className="sidebar">
       <h2>Admin Panel</h2>
       <div className="admin-info">
         <p>Xin chào, {adminName}</p> {/* Hiển thị tên admin */}
@@ -29,7 +48,12 @@ const Sidebar = ({}) => {
         {/* Quản lý người dùng */}
         <li>
           <NavLink to="/admin/users" activeClassName="active">
-            Quản lý người dùng
+            Quản lý nhân viên
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/admin/customers" activeClassName="active">
+            Quản lý khách hàng
           </NavLink>
         </li>
 
@@ -99,15 +123,43 @@ const Sidebar = ({}) => {
         </li>
 
         {/* Quản lý thanh toán */}
-        <li>
+        {/* <li>
           <NavLink to="/admin/payments" activeClassName="active">
             Quản lý thanh toán
           </NavLink>
-        </li>
+        </li> */}
         <li>
-          <NavLink to="/admin/reports" activeClassName="active">
-            Thống kê & Báo cáo
-          </NavLink>
+          <button className="submenu-toggle ml-4" onClick={toggleReportsMenu}>
+            Thống kê
+          </button>
+          {isReportsMenuOpen && (
+            <ul className="submenu pt-4">
+              <li>
+                <NavLink
+                  to="/admin/reports/CustomerReports"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                >
+                  Khách hàng
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/admin/reports/EmployeeReports"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                >
+                  Nhân viên
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/admin/reports/PromotionReports"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                >
+                  Khuyến mãi
+                </NavLink>
+              </li>
+            </ul>
+          )}
         </li>
       </ul>
 
