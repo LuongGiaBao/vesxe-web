@@ -10,6 +10,7 @@ const BusFormModal = ({ visible, onCancel, onOk, initialValues }) => {
   useEffect(() => {
     if (initialValues) {
       form.setFieldsValue({
+        MaXe: initialValues.attributes.MaXe,
         BienSo: initialValues.attributes.BienSo,
         busName: initialValues.attributes.busName,
         seatCount: initialValues.attributes.seatCount,
@@ -17,6 +18,7 @@ const BusFormModal = ({ visible, onCancel, onOk, initialValues }) => {
       });
     } else {
       form.resetFields();
+      form.setFieldsValue({ status: "Ngưng hoạt động" });
     }
   }, [initialValues, form]);
 
@@ -38,6 +40,13 @@ const BusFormModal = ({ visible, onCancel, onOk, initialValues }) => {
       centered={true}
     >
       <Form form={form} layout="vertical">
+        <Form.Item
+          label="Mã Xe"
+          name="MaXe"
+          rules={[{ required: true, message: "Vui lòng nhập mã xe!" }]}
+        >
+          <Input placeholder="Nhập mã xe" maxLength={10} />
+        </Form.Item>
         <Form.Item
           label="Biển Số Xe"
           name="BienSo"
@@ -69,9 +78,9 @@ const BusFormModal = ({ visible, onCancel, onOk, initialValues }) => {
           name="status"
           rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
         >
-          <Select placeholder="Chọn trạng thái">
+          <Select placeholder="Chọn trạng thái" disabled={!initialValues}>
             <Option value="Hoạt động">Hoạt động</Option>
-            <Option value="Không hoạt động">Không hoạt động</Option>
+            <Option value="Ngưng hoạt động">Ngưng hoạt động</Option>
           </Select>
         </Form.Item>
       </Form>

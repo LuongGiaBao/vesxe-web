@@ -1,269 +1,264 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Card, Col, Row, Typography, Button } from "antd";
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Card,
+  Col,
+  Row,
+  Space,
+  Tag,
+  Button,
+  Divider,
+  Typography,
+  message,
+} from "antd";
+import {
+  EnvironmentOutlined,
+  ArrowRightOutlined,
+  ClockCircleOutlined,
+  CarOutlined,
+  InfoCircleOutlined,
+  DollarOutlined,
+} from "@ant-design/icons";
 import Banner from "../components/Banner";
-import { apiClient } from "../services/apiservices";
+import { fetchAllPromotionDetails } from "../api/PromotionDetailApi";
 const { Title, Text } = Typography;
 
-const SearchResult = () => {
+const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [trips, setTrips] = useState(location.state?.trips || []); // Extract trips from state, defaulting to an empty array
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const schedules = location.state?.schedules || [];
 
-  useEffect(() => {
-    if (trips.length > 0) {
-      fetchTicketPrices();
-    }
-  }, [trips]);
-
-  useEffect(() => {
-    // Cập nhật trips mỗi khi location.state thay đổi
-    if (location.state?.trips) {
-      setTrips(location.state.trips);
-    }
-  }, [location.state?.trips]);
-
-  const fetchTicketPrices = async () => {
-    try {
-      const response = await apiClient.get(
-        "/trips?populate=ticket.ticket_prices"
-      );
-
-      if (!response.data) {
-        throw new Error("No data received");
-      }
-
-      const tripsWithPrices = response.data.data.map((trip) => {
-        const tripId = trip.id;
-        const ticket = trip.attributes.ticket?.data;
-        let ticketPrices = [];
-        if (ticket && ticket.attributes.ticket_prices?.data) {
-          ticketPrices = ticket.attributes.ticket_prices.data.map((price) => ({
-            id: price.id,
-            price: price.attributes.price,
-            status: price.attributes.status,
-            startDate: price.attributes.startDate,
-            endDate: price.attributes.endDate,
-          }));
-        }
-
-        return {
-          tripId,
-          attributes: {
-            ...trip.attributes,
-            ticketPrices,
-            totalSeats: trip.attributes.totalSeats,
-            seatCount: trip.attributes.seatCount,
-          },
-        };
-      });
-
-      setTrips((prevTrips) =>
-        prevTrips.map((existingTrip) => {
-          const matchedTrip = tripsWithPrices.find(
-            (t) => t.tripId === existingTrip.id
-          );
-          return matchedTrip
-            ? {
-                ...existingTrip,
-                attributes: {
-                  ...existingTrip.attributes,
-                  ticketPrices: matchedTrip.attributes.ticketPrices || [],
-                  totalSeats: matchedTrip.attributes.totalSeats,
-                  seatCount: matchedTrip.attributes.seatCount,
-                },
-              }
-            : existingTrip;
-        })
-      );
-    } catch (error) {
-      console.error("Error fetching ticket prices:", error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatTime = (time) => {
-    // Implement your time formatting logic here
-    return new Date(time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const handleSelectTrip = (trip) => {
+  const handleSelectTrip = (schedule) => {
     navigate("/seat-selection", {
       state: {
         selectedTrip: {
-          ...trip,
-          totalSeats: trip.attributes.totalSeats,
-          availableSeats:
-            trip.attributes.totalSeats - trip.attributes.seatCount,
-          id: trip.id,
-          departureStation:
-            trip.attributes.departure_location_id?.data?.attributes?.name,
-          destinationStation:
-            trip.attributes.arrival_location_id?.data?.attributes?.name,
-          departureTime: trip.attributes.departureTime,
-          price: trip.attributes.ticketPrices?.[0]?.price,
+          id: schedule.scheduleId,
+          departureStation: schedule.departureName,
+          destinationStation: schedule.arrivalName,
+          departureTime: schedule.formattedTime,
+          price: schedule.price,
+          totalSeats: schedule.totalSeats,
+          pickupPoint: schedule.pickupPoint,
+          dropOffPoint: schedule.dropOffPoint,
+          expectedTime: schedule.expectedTime,
+          status: schedule.status,
         },
       },
     });
   };
 
-  const calculateTravelTime = (departureTime, arrivalTime) => {
-    const departure = new Date(departureTime);
-    const arrival = new Date(arrivalTime);
+  const formatToDateTimeVN = (dateString) => {
+    const date = new Date(dateString);
 
-    // Tính toán chênh lệch thời gian tính theo phút
-    const diffMs = arrival - departure;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    // Lấy giờ và phút dưới dạng số
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
 
-    return `${diffHours} giờ ${diffMinutes} phút`;
+    // Định dạng thành chuỗi "X giờ Y phút"
+    return `${hours} giờ ${minutes} phút`;
   };
 
+  const calculateArrivalTime = (departureTime, expectedTime) => {
+    if (!expectedTime) {
+      console.error("Expected time is undefined.");
+      return new Date(departureTime); // Trả về thời gian khởi hành nếu không có expectedTime
+    }
+
+    const departureDate = new Date(departureTime);
+    const [hours, minutes] = expectedTime.split(":").map(Number);
+    departureDate.setHours(departureDate.getHours() + hours);
+    departureDate.setMinutes(departureDate.getMinutes() + minutes);
+    return departureDate;
+  };
+
+  const formatExpectedTime = (timeString) => {
+    const [hours, minutes] = timeString.split(":");
+    return `${parseInt(hours, 10)} giờ ${minutes} phút`;
+  };
   return (
     <div className="trip-results">
       <Banner />
+      <Title level={3} style={{ margin: "20px 0" }}>
+        Kết quả chuyến đi
+      </Title>
 
-      <div className="trip-card">
-        <h4 className="trip-title">Kết quả chuyến đi</h4>
-
-        {trips.length === 0 ? (
-          <div className="no-results">
-            Không tìm thấy chuyến xe nào phù hợp.
-          </div>
-        ) : (
-          <Row gutter={[16, 24]}>
-            {trips.map((trip) => (
-              <Col xs={24} sm={24} md={12} lg={12} key={trip.id}>
-                <div className="trip-card">
-                  <h4 className="trip-title">Thông tin chuyến đi</h4>
-
-                  <div className="location-info">
-                    <span className="location-label">Điểm khởi hành:</span>
-                    <span>
-                      {
-                        trip.attributes.departure_location_id?.data?.attributes
-                          ?.name
-                      }
-                    </span>
-                    <span className="location-label">Điểm đến:</span>
-                    <span>
-                      {
-                        trip.attributes.arrival_location_id?.data?.attributes
-                          ?.name
-                      }
-                    </span>
-                  </div>
-
-                  <div className="time-container">
-                    {/* Thời gian đi */}
-                    <div className="time-block">
-                      <div className="time-label">Thời gian khởi hành:</div>
-                      <div className="time-value">
-                        {formatTime(trip.attributes.departureTime)}
-                      </div>
-                    </div>
-
-                    <div className="duration">
-                      {calculateTravelTime(
-                        trip.attributes.departureTime,
-                        trip.attributes.arrivalTime
-                      )}
-                    </div>
-
-                    <div className="time-block">
-                      <div className="time-label">Thời gian đến:</div>
-                      <div className="time-value">
-                        {formatTime(trip.attributes.arrivalTime)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="station-info">{/* Thông tin bến xe */}</div>
-                  <div style={{ marginBottom: "10px" }}>
-                      <Text strong>Bến xe khởi hành:</Text>
-                      <Text style={{ marginLeft: "10px", color: "#333" }}>
-                        {trip.attributes.pickup_point?.data?.attributes
-                          ?.location || "N/A"}
-                      </Text>
-                      <Text strong style={{ marginLeft: "15px" }}>
-                        Bến xe đến:
-                      </Text>
-                      <Text style={{ marginLeft: "10px", color: "#333" }}>
-                        {trip.attributes.drop_off_point?.data?.attributes
-                          ?.location || "N/A"}
-                      </Text>
-                    </div>
-                  <div className="additional-info">
-                    {/* Khoảng cách và ghế trống */}
+      {schedules.length === 0 ? (
+        <Text>Không tìm thấy chuyến xe nào phù hợp.</Text>
+      ) : (
+        <Row gutter={[16, 16]}>
+          {schedules.map((schedule) => (
+            <Col xs={24} sm={24} md={12} lg={8} key={schedule.scheduleId}>
+              <Card
+                hoverable
+                title={
+                  <Space>
+                    <EnvironmentOutlined />
+                    {schedule.departureName}
+                    <ArrowRightOutlined />
+                    {schedule.arrivalName}
+                  </Space>
+                }
+              >
+                <Space
+                  direction="vertical"
+                  size="middle"
+                  style={{ width: "100%" }}
+                >
+                  {/* Timeline section */}
+                  <div
+                    className="flex flex-col"
+                    style={{ position: "relative" }}
+                  >
+                    {/* Vertical line */}
                     <div
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "10px",
+                        position: "absolute",
+                        left: "7px",
+                        top: "20px",
+                        bottom: "24px",
+                        width: "4px",
+                        background: "#e8e8e8",
                       }}
-                    >
-                      <div className="p-2">
-                        <Text strong style={{ marginRight: 9 }}>
-                          Khoảng cách:
-                        </Text>
-                        <Text>{trip.attributes.distance || "N/A"}</Text>
-                      </div>
+                    />
 
+                    {/* Departure */}
+                    <Space align="start">
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <EnvironmentOutlined
+                          style={{
+                            color: "orange",
+                            fontSize: "20px",
+                            background: "#fff",
+                          }}
+                        />
+                        <div
+                          style={{
+                            width: "2px",
+                            height: "20px",
+                            background: "#e8e8e8",
+                          }}
+                        />
+                      </div>
                       <div>
-                        <Text strong style={{ marginRight: 9 }}>
-                          Ghế trống:
-                        </Text>
+                        {formatToDateTimeVN(schedule.formattedTime)}
+                        <br />
+                      </div>
+                    </Space>
+
+                    {/* Expected time */}
+                    <Space
+                      align="center"
+                      style={{ marginLeft: "29px"}}
+                    >
+                      <Text type="secondary">
+                        {/* Thời gian dự kiến:{" "} */}
+                        {formatExpectedTime(schedule.expectedTime)}
+                      </Text>
+                    </Space>
+
+                    {/* Arrival */}
+                    <Space align="start">
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "2px",
+                            height: "20px",
+                            background: "#e8e8e8",
+                          }}
+                        />
+                        <EnvironmentOutlined
+                          style={{
+                            color: "green",
+                            fontSize: "20px",
+                            background: "#fff",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        {/* <Text strong>Đến:</Text> */}
+                        <br />
                         <Text>
-                          {trip.attributes.totalSeats &&
-                          trip.attributes.seatCount !== undefined
-                            ? trip.attributes.totalSeats -
-                              trip.attributes.seatCount
-                            : "Không có ghế trống"}
+                          {(() => {
+                            const departureTime = schedule.formattedTime;
+                            const expectedTime = schedule.expectedTime;
+                            const arrivalTime = calculateArrivalTime(
+                              departureTime,
+                              expectedTime
+                            );
+                            return formatToDateTimeVN(arrivalTime);
+                          })()}
                         </Text>
                       </div>
-                    </div>
+                    </Space>
                   </div>
 
-                  <div className="price-info"> <div key={trip.id}>
-                      {trip.attributes.ticketPrices &&
-                      trip.attributes.ticketPrices.length > 0 ? (
-                        trip.attributes.ticketPrices.map((price) => (
-                          <Text strong key={price.id}>
-                            Giá: {price.price} VNĐ
-                          </Text>
-                        ))
+                  <Divider style={{ margin: "12px 0" }} />
+
+                  {/* Station Information */}
+                  <Space
+                    direction="vertical"
+                    size="small"
+                    style={{ width: "100%" }}
+                  >
+                    <Space>
+                      <CarOutlined />
+                      <Text strong>Bến xe khởi hành:</Text>
+                      <Text>{schedule.pickupPoint || "N/A"}</Text>
+                    </Space>
+
+                    <Space>
+                      <CarOutlined />
+                      <Text strong>Bến xe đến:</Text>
+                      <Text>{schedule.dropOffPoint || "N/A"}</Text>
+                    </Space>
+
+                    <Space>
+                      <InfoCircleOutlined />
+                      <Text strong>Ghế trống:</Text>
+                      <Text>{schedule.totalSeats || "N/A"}</Text>
+                    </Space>
+
+                    <Space>
+                      <DollarOutlined />
+                      <Text strong>Giá vé:</Text>
+                      {schedule.price ? (
+                        <Tag color="blue">
+                          {parseInt(schedule.price, 10).toLocaleString("vi-VN")}{" "}
+                          VNĐ
+                        </Tag>
                       ) : (
-                        <Text style={{ color: "red" }}>
-                          Không có giá vé nào.
-                        </Text>
+                        <Text>Không có giá vé</Text>
                       )}
-                    </div></div>
+                    </Space>
+                  </Space>
 
-                  <div className="status">
-                    {trip.attributes.status || "N/A"}
-                  </div>
-
-                  <button
-                    className="select-button"
-                    onClick={() => handleSelectTrip(trip)}
+                  <Button
+                    type="primary"
+                    block
+                    onClick={() => handleSelectTrip(schedule)}
                   >
                     Chọn chuyến
-                  </button>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        )}
-      </div>
+                  </Button>
+                </Space>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
     </div>
   );
 };
 
-export default SearchResult;
+export default SearchResults;

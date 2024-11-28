@@ -1,152 +1,178 @@
-import React, { useEffect } from "react";
-import { Modal, Form, Input, Button, Select, DatePicker } from "antd";
-// import moment from "moment";
-import moment from "moment-timezone";
-const AddPromotionModal = ({
-  isOpen,
-  onClose,
-  onAdd,
-  onEdit,
-  promotionData,
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Input, Select, DatePicker, message } from "antd";
+import moment from "moment";
+
+const { Option } = Select;
+
+const PromotionFormModal = ({
+  visible,
+  onCancel,
+  onOk,
+  initialValues,
+  existingPromotions,
 }) => {
   const [form] = Form.useForm();
-  const [isEditing, setIsEditing] = React.useState(false);
-
+  const [canActivate, setCanActivate] = useState(true);
   useEffect(() => {
-    if (promotionData.id) {
+    if (initialValues) {
       form.setFieldsValue({
-        promotionName: promotionData.promotionName,
-        description: promotionData.description,
-        discountType: promotionData.discountType,
-        discountValue: promotionData.discountValue,
-        startDate: moment(promotionData.startDate),
-        endDate: moment(promotionData.endDate),
-        status: promotionData.status,
+        IDPromotion: initialValues.attributes.IDPromotion,
+        description: initialValues.attributes.description,
+        startDate: moment(initialValues.attributes.startDate),
+        endDate: moment(initialValues.attributes.endDate),
+        status: initialValues.attributes.status,
       });
-      setIsEditing(true);
     } else {
+      form.setFieldsValue({
+        IDPromotion: "MKM", // Đặt giá trị mặc định cho Mã Khuyến Mãi
+        status: "Ngưng hoạt động",
+        startDate: moment(),
+        endDate: moment().add(1, "month"),
+      });
       form.resetFields();
-      setIsEditing(false);
     }
-  }, [promotionData, form]);
+  }, [initialValues, form]);
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
-    const promotionInfo = {
-      promotionName: values.promotionName,
-      description: values.description,
-      discountType: values.discountType,
-      discountValue: values.discountValue,
-      startDate: moment.tz(values.startDate, "Asia/Ho_Chi_Minh").utc().format(),
-      endDate: moment.tz(values.endDate, "Asia/Ho_Chi_Minh").utc().format(),
-      status: values.status,
-    };
+  const handleOk = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        // Nếu là thêm mới (không có initialValues), set status mặc định
+        if (!initialValues) {
+          values.status = "Ngưng hoạt động";
+        }
 
-    if (isEditing) {
-      onEdit(promotionInfo);
-    } else {
-      onAdd(promotionInfo);
+        // // Bỏ kiểm tra ngày
+        // if (values.status === "Hoạt động") {
+        //   message.error(
+        //     "Không thể kích hoạt khuyến mãi này do trùng thời gian với khuyến mãi khác đang hoạt động."
+        //   );
+        //   return;
+        // }
+
+        onOk(values);
+      })
+      .catch((info) => {
+        console.log("Validate Failed:", info);
+      });
+  };
+
+  const handleMaKhuyenMaiChange = (e) => {
+    let value = e.target.value;
+
+    // Nếu mã khuyến mãi bắt đầu bằng "MKKMKK", chỉ giữ lại một "MKK"
+    if (value.startsWith("MKMMKM")) {
+      value = "MKM" + value.substring(6);
+    }
+    // Nếu mã khuyến mãi không bắt đầu bằng "MKK", thêm "MKK" vào đầu
+    else if (!value.startsWith("MKM")) {
+      value = "MKM" + value;
     }
 
-    onClose();
+    // Cập nhật giá trị trong form
+    form.setFieldsValue({ IDPromotion: value });
   };
-  const formatDateTime = (time) => {
-    // Giả sử thời gian từ Strapi là UTC
-    const utcTime = moment.utc(time);
 
-    // Chuyển đổi về múi giờ Việt Nam (GMT+7)
-    const localTime = utcTime.tz("Asia/Ho_Chi_Minh");
+  // const handleDateChange = () => {
+  //   const startDate = form.getFieldValue("startDate");
+  //   const endDate = form.getFieldValue("endDate");
 
-    return localTime.format("DD/MM/YYYY HH:mm"); // Định dạng 24 giờ
-  };
+  //   if (startDate && endDate) {
+  //     const isOverlapping = !existingPromotions.some(
+  //       (promo) =>
+  //         promo.attributes.status === "Hoạt động" &&
+  //         moment(promo.attributes.startDate).isSameOrBefore(endDate) &&
+  //         moment(promo.attributes.endDate).isSameOrAfter(startDate) &&
+  //         (!initialValues || promo.id !== initialValues.id)
+  //     );
+
+  //     setCanActivate(!isOverlapping);
+
+  //     if (isOverlapping) {
+  //       form.setFieldsValue({ status: "Ngưng hoạt động" });
+  //       message.warning(
+  //         "Không thể kích hoạt khuyến mãi này vì đã có khuyến mãi hoạt động trong khoảng thời gian này."
+  //       );
+  //     } else {
+  //       // Nếu không có trùng lặp, có thể đặt trạng thái thành "Hoạt động"
+  //       form.setFieldsValue({ status: "Hoạt động" });
+  //     }
+  //   }
+  // };
+
   return (
     <Modal
-      title={isEditing ? "Chỉnh sửa khuyến mãi" : "Thêm khuyến mãi"}
-      visible={isOpen}
-      onCancel={onClose}
-      footer={null}
+      title={initialValues ? "Cập nhật Khuyến Mãi" : "Thêm Khuyến Mãi Mới"}
+      visible={visible}
+      onCancel={onCancel}
+      onOk={handleOk}
+      centered
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form form={form} layout="vertical">
         <Form.Item
-          label="Tên Khuyến Mãi"
-          name="promotionName"
-          rules={[{ required: true, message: "Vui lòng nhập tên khuyến mãi!" }]}
+          name="IDPromotion"
+          label="Mã Khuyến Mãi"
+          initialValue="MKM"
+          rules={[
+            { required: true, message: "Vui lòng nhập mã khuyến mãi!" },
+            {
+              min: 4,
+              message: "Vui lòng nhập số sau MKK",
+            },
+          ]}
         >
-          <Input />
+          <Input
+            placeholder="Ví dụ: MKK001"
+            onChange={handleMaKhuyenMaiChange}
+            value={form.getFieldValue("IDPromotion")}
+          />
         </Form.Item>
+
         <Form.Item
-          label="Mô Tả"
           name="description"
+          label="Mô Tả"
           rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
         >
           <Input.TextArea />
         </Form.Item>
+
         <Form.Item
-          label="Loại Giảm Giá"
-          name="discountType"
-          rules={[{ required: true, message: "Vui lòng chọn loại giảm giá!" }]}
-        >
-          <Select>
-            <Select.Option value="phần trăm">Phần trăm</Select.Option>
-            <Select.Option value="số tiền">Số tiền</Select.Option>
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label="Giá Trị Giảm Giá"
-          name="discountValue"
-          rules={[
-            { required: true, message: "Vui lòng nhập giá trị giảm giá!" },
-          ]}
-        >
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item
-          label="Ngày Bắt Đầu"
           name="startDate"
+          label="Ngày Bắt Đầu"
           rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu!" }]}
         >
-          <Input
-            type="datetime-local"
-            onChange={(e) => {
-              const formattedTime = formatDateTime(e.target.value);
-              console.log(formattedTime);
-            }}
+          <DatePicker
+            format="DD-MM-YYYY"
+            style={{ width: "100%" }}
+            // onChange={handleDateChange}
           />
         </Form.Item>
         <Form.Item
-          label="Ngày Kết Thúc"
           name="endDate"
+          label="Ngày Kết Thúc"
           rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc!" }]}
         >
-          <Input
-            type="datetime-local"
-            onChange={(e) => {
-              const formattedTime = formatDateTime(e.target.value);
-              console.log(formattedTime);
-            }}
+          <DatePicker
+            format="DD-MM-YYYY"
+            style={{ width: "100%" }}
+            // onChange={handleDateChange}
           />
         </Form.Item>
-        <Form.Item
-          label="Trạng Thái"
-          name="status"
-          rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
-        >
-          <Select>
-            <Select.Option value="Hoạt động">Hoạt động</Select.Option>
-            <Select.Option value="Không hoạt động">
-              Không hoạt động
-            </Select.Option>
-            <Select.Option value="Hết hạn">Hết hạn</Select.Option>
-          </Select>
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            {isEditing ? "Cập nhật" : "Thêm"}
-          </Button>
-        </Form.Item>
+        {initialValues && (
+          <Form.Item
+            name="status"
+            label="Trạng Thái"
+            rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+          >
+            <Select>
+              <Option value="Hoạt động">Hoạt động</Option>
+              <Option value="Ngưng hoạt động">Ngưng hoạt động</Option>
+            </Select>
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );
 };
 
-export default AddPromotionModal;
+export default PromotionFormModal;

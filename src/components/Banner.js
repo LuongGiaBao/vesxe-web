@@ -2,23 +2,21 @@ import React, { useState, useEffect } from "react";
 import { Select, DatePicker, Button, Form, message } from "antd";
 import dayjs from "dayjs";
 import { fetchAllLocations } from "../api/LocationApi";
-import { fetchAllTrips } from "../api/TripApi";
+import { fetchAllSchedules } from "../api/ScheduleApi"; // Giả định bạn đã có hàm này
 import { useNavigate } from "react-router-dom";
-import { apiClient } from "../services/apiservices";
-
-const { Option } = Select;
 
 const TripSearchPage = () => {
   const [locations, setLocations] = useState([]); // Danh sách các địa điểm
   const [departureId, setDepartureId] = useState(""); // ID địa điểm khởi hành
   const [arrivalId, setArrivalId] = useState(""); // ID địa điểm đến
   const [date, setDate] = useState(null); // Ngày đi
-  const [trips, setTrips] = useState([]); // Danh sách chuyến đi
-  const [allTrips, setAllTrips] = useState([]);
+  const [schedules, setSchedules] = useState([]); // Danh sách lịch trình
+
   const navigate = useNavigate();
+
   useEffect(() => {
     loadLocations(); // Gọi hàm để tải địa điểm
-    fetchTrips();
+    fetchSchedules(); // Gọi hàm để tải lịch trình
   }, []);
 
   const loadLocations = async () => {
@@ -29,22 +27,26 @@ const TripSearchPage = () => {
       console.error("Error loading locations:", error);
     }
   };
-  const fetchTrips = async () => {
+
+  const fetchSchedules = async () => {
     try {
-      const response = await fetchAllTrips();
-      if (response && Array.isArray(response.data)) {
-        setAllTrips(response.data); // Lưu vào state nếu có dữ liệu hợp lệ
+      const response = await fetchAllSchedules(); // Lấy tất cả lịch trình
+
+      if (response && response.data) {
+        // Log từng lịch trình để kiểm tra
+
+        setSchedules(response.data); // Lưu vào state nếu có dữ liệu hợp lệ
       } else {
-        console.error("Dữ liệu chuyến đi không hợp lệ:", response);
+        console.error("Dữ liệu lịch trình không hợp lệ:", response);
       }
     } catch (error) {
-      console.error("Lỗi khi tải chuyến đi:", error);
+      console.error("Lỗi khi tải lịch trình:", error);
     }
   };
 
   const onSearch = async () => {
     if (!departureId || !arrivalId || !date) {
-      message.error("Vui lòng nhập đầy đủ điểm đi và điểm đến.");
+      message.error("Vui lòng nhập đầy đủ điểm đi, điểm đến và ngày đi.");
       return;
     }
     if (departureId === arrivalId) {
@@ -53,41 +55,56 @@ const TripSearchPage = () => {
     }
 
     try {
-      const allTrips = await fetchAllTrips(); // Lấy tất cả các chuyến đi
-
-      // Kiểm tra xem allTrips có phải là mảng hay không
-      if (!Array.isArray(allTrips.data)) {
-        throw new Error("Dữ liệu chuyến đi không phải là một mảng.");
+      if (!Array.isArray(schedules) || schedules.length === 0) {
+        message.error("Không có lịch trình nào để tìm kiếm.");
+        return;
       }
 
-      // Lọc các chuyến đi dựa trên địa điểm
-      const filteredTrips = allTrips.data.filter((trip) => {
-        const tripDepartureLocationId =
-          trip.attributes.departure_location_id.data.id;
-        const tripArrivalLocationId =
-          trip.attributes.arrival_location_id.data.id;
-        const tripDate = dayjs(trip.attributes.departureTime).format(
-          "YYYY-MM-DD"
+      const selectedDate = dayjs(date).startOf("day");
+
+      const tripData = schedules
+        .map((schedule) => {
+          const routeData = schedule.attributes.MaTuyen.data.attributes;
+          const departureLocation = routeData.departure_location_id?.data;
+          const arrivalLocation = routeData.arrival_location_id?.data;
+
+          if (!departureLocation || !arrivalLocation) return null;
+
+          const scheduleDate = dayjs(schedule.attributes.ngaydi).startOf("day");
+          if (!scheduleDate.isSame(selectedDate, "day")) return null;
+
+          return {
+            scheduleId: schedule.id,
+            departureId: departureLocation.id,
+            departureName: departureLocation.attributes.name,
+            arrivalId: arrivalLocation.id,
+            arrivalName: arrivalLocation.attributes.name,
+            formattedTime: schedule.attributes.ngaydi,
+            pickupPoint: routeData.MaDiemDon.data.attributes.location,
+            dropOffPoint: routeData.MaDiemTra.data.attributes.location,
+            price: routeData.detai_prices.data[0]?.attributes.Gia,
+            expectedTime: routeData.ExpectedTime,
+            totalSeats: routeData.totalSeats,
+            status: schedule.attributes.status,
+          };
+        })
+        .filter(
+          (item) =>
+            item !== null &&
+            String(item.departureId) === String(departureId) &&
+            String(item.arrivalId) === String(arrivalId) &&
+            item.status === "Hoạt động"
         );
 
-        return (
-          String(tripDepartureLocationId) === String(departureId) &&
-          String(tripArrivalLocationId) === String(arrivalId) &&
-          tripDate === dayjs(date).format("YYYY-MM-DD")
-        );
-      });
-
-      setTrips(filteredTrips); // Cập nhật danh sách chuyến đi
-
-      if (filteredTrips.length > 0) {
+      if (tripData.length > 0) {
         navigate(`/search-results/${departureId}/${arrivalId}`, {
-          state: { trips: filteredTrips },
-        }); // Chuyển đến SearchResult và truyền dữ liệu
+          state: { schedules: tripData },
+        });
       } else {
-        message.info("Không tìm thấy chuyến xe nào phù hợp.");
+        message.info("Không tìm thấy lịch trình nào phù hợp.");
       }
     } catch (error) {
-      message.error("Lỗi khi tìm kiếm chuyến xe.");
+      message.error("Lỗi khi tìm kiếm lịch trình.");
       console.error("Lỗi:", error);
     }
   };
@@ -131,7 +148,7 @@ const TripSearchPage = () => {
 
         {/* Search Button */}
         <Button type="primary" className="search-button" onClick={onSearch}>
-          Tìm chuyến xe
+          Tìm lịch trình
         </Button>
       </div>
     </div>

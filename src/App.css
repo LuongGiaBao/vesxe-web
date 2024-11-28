@@ -99,3 +99,9 @@
   border-radius: 5px;
   background-color: #f9f9f9;
 }
+
+.sidebar {
+  position: fixed; /* Giữ sidebar cố định */
+  overflow-y: auto; /* Bật thanh cuộn */
+  height: 100%; /* Chiều cao toàn phần */
+}
