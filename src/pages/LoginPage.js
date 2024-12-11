@@ -198,7 +198,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
 import "../assets/AuthPage.css";
-import { findCustomerByEmail, loginCustomer, registerCustomer } from "../api/CustomerApi";
+import {
+  checkUsernameExists,
+  findCustomerByEmail,
+  loginCustomer,
+  registerCustomer,
+} from "../api/CustomerApi";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -216,6 +221,33 @@ const AuthPage = () => {
     return re.test(String(email).toLowerCase());
   };
 
+  // const handleLogin = async (event) => {
+  //   event.preventDefault();
+  //   setLoading(true);
+
+  //   if (!validateEmail(formData.Email)) {
+  //     message.error("Email không hợp lệ");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await loginCustomer(formData.Email, formData.Password);
+  //     localStorage.setItem("user", JSON.stringify(response.user));
+  //     localStorage.setItem("jwt", response.jwt);
+
+  //     // Lấy thông tin khách hàng dựa trên email
+  //     const customer = await findCustomerByEmail(formData.Email); // Bạn cần tạo hàm này trong CustomerApi
+  //     localStorage.setItem("customer", JSON.stringify(customer)); // Lưu thông tin khách hàng vào local storage
+
+  //     message.success("Đăng nhập thành công");
+  //     navigate("/");
+  //   } catch (error) {
+  //     message.error("Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -232,8 +264,16 @@ const AuthPage = () => {
       localStorage.setItem("jwt", response.jwt);
 
       // Lấy thông tin khách hàng dựa trên email
-      const customer = await findCustomerByEmail(formData.Email); // Bạn cần tạo hàm này trong CustomerApi
+      const customer = await findCustomerByEmail(formData.Email);
       localStorage.setItem("customer", JSON.stringify(customer)); // Lưu thông tin khách hàng vào local storage
+
+      // Cập nhật thông tin khách hàng vào localStorage
+      const customerInfo = {
+        name: customer.TenKH, // Giả sử bạn có trường TenKH trong customer
+        phone: customer.DienThoai, // Giả sử bạn có trường DienThoai trong customer
+        email: customer.Email, // Giả sử bạn có trường Email trong customer
+      };
+      localStorage.setItem("customerInfo", JSON.stringify(customerInfo));
 
       message.success("Đăng nhập thành công");
       navigate("/");
@@ -243,7 +283,6 @@ const AuthPage = () => {
       setLoading(false);
     }
   };
-
   const handleRegister = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -255,6 +294,15 @@ const AuthPage = () => {
     }
 
     try {
+      // Kiểm tra xem tên người dùng đã tồn tại chưa
+      const usernameExists = await checkUsernameExists(formData.TenKH);
+      console.log("Username exists:", usernameExists);
+      if (usernameExists) {
+        message.error("Tên người dùng đã tồn tại. Vui lòng chọn tên khác.");
+        setLoading(false);
+        return;
+      }
+
       const result = await registerCustomer(
         formData.TenKH,
         formData.Email,
@@ -262,6 +310,13 @@ const AuthPage = () => {
       ); // Gửi tên người dùng, email và mật khẩu
       localStorage.setItem("user", JSON.stringify(result.user));
       localStorage.setItem("jwt", result.jwt);
+      const customerInfo = {
+        name: formData.TenKH,
+        phone: formData.DienThoai,
+        email: formData.Email,
+      };
+      localStorage.setItem("customerInfo", JSON.stringify(customerInfo));
+
       message.success("Đăng ký thành công");
       navigate("/"); // Chuyển hướng đến trang profile sau khi đăng ký
     } catch (error) {

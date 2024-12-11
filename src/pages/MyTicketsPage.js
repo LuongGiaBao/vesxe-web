@@ -159,14 +159,14 @@ const MyTicketsPage = () => {
                       <span className="text-xl font-bold text-blue-600">
                         {ticket.id}
                       </span>
-                      <Button
+                      {/* <Button
                         type="primary"
                         icon={<QrcodeOutlined />}
                         onClick={() => showQRCode(ticket.id)}
                         className="bg-blue-500 hover:bg-blue-600"
                       >
                         Hiển thị QR
-                      </Button>
+                      </Button> */}
                     </div>
                   }
                 >

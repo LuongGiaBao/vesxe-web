@@ -119,34 +119,34 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    // e.preventDefault();
-    // try {
-    //   const response = await apiClient.post("/auth/local", {
-    //     identifier: email,
-    //     password: password,
-    //   });
-    //   const { jwt, user } = response.data;
-    //   // Kiểm tra xem người dùng có phải là admin không
-    //   if (!user.confirmed) {
-    //     message.warning(
-    //       "Tài khoản của bạn chưa được xác nhận. Vui lòng kiểm tra email."
-    //     );
-    //     return;
-    //   }
-    //   // if (!user.isAdmin) {
-    //   //   message.warning("Bạn không có quyền truy cập vào trang quản trị.");
-    //   //   return;
-    //   // }
-    //   localStorage.setItem("token", jwt);
-    //   localStorage.setItem("adminName", user.username);
-    //   message.success(`Đăng nhập thành công! Chào mừng bạn, ${user.username}!`);
-    //   navigate("/admin/dashboard");
-    // } catch (error) {
-    //   const errorMessage =
-    //     error.response?.data?.message ||
-    //     "Đăng nhập thất bại. Vui lòng thử lại.";
-    //   message.error(errorMessage);
-    // }
+    e.preventDefault();
+    try {
+      const response = await apiClient.post("/auth/local", {
+        identifier: email,
+        password: password,
+      });
+      const { jwt, user } = response.data;
+      // Kiểm tra xem người dùng có phải là admin không
+      if (!user.confirmed) {
+        message.warning(
+          "Tài khoản của bạn chưa được xác nhận. Vui lòng kiểm tra email."
+        );
+        return;
+      }
+      // if (!user.isAdmin) {
+      //   message.warning("Bạn không có quyền truy cập vào trang quản trị.");
+      //   return;
+      // }
+      localStorage.setItem("token", jwt);
+      localStorage.setItem("adminName", user.username);
+      message.success(`Đăng nhập thành công! Chào mừng bạn, ${user.username}!`);
+      navigate("/admin/dashboard");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Đăng nhập thất bại. Vui lòng thử lại.";
+      message.error(errorMessage);
+    }
   };
 
   return (

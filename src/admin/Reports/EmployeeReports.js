@@ -354,16 +354,16 @@ const EmployeeReports = () => {
       grandTotalSalesAfterDiscount += employeeData.totalSalesAfterDiscount;
     });
 
-    // Add the grand total row
-    formattedDataForExcel.push({
-      STT: "",
-      NVBH: "",
-      "Tên NVBH": "Tổng cộng (150)", // Có thể thay thế 150 bằng tổng số lượng nhân viên nếu cần
-      "Ngày bán": "",
-      "Chiết khấu": "",
-      "Doanh số trước CK": grandTotalSalesBeforeDiscount,
-      "Doanh số sau CK": grandTotalSalesAfterDiscount,
-    });
+    // // Add the grand total row
+    // formattedDataForExcel.push({
+    //   STT: "",
+    //   NVBH: "",
+    //   "Tên NVBH": "",
+    //   "Ngày bán": "",
+    //   "Chiết khấu": "",
+    //   "Doanh số trước CK": grandTotalSalesBeforeDiscount,
+    //   "Doanh số sau CK": grandTotalSalesAfterDiscount,
+    // });
 
     // Convert data to Excel sheet
     const ws = XLSX.utils.json_to_sheet(formattedDataForExcel, {
@@ -376,19 +376,26 @@ const EmployeeReports = () => {
         "Doanh số trước CK",
         "Doanh số sau CK",
       ],
-      origin: "A2", // Dữ liệu bắt đầu từ dòng 2
+      origin: "A3", // Dữ liệu bắt đầu từ dòng 2
+    });
+    // Add report generation date at row 1
+    const currentDateTime = new Date().toLocaleString("vi-VN");
+    XLSX.utils.sheet_add_aoa(ws, [[`Ngày xuất báo cáo: ${currentDateTime}`]], {
+      origin: "A1", // Đặt thời gian xuất báo cáo tại dòng 1
     });
 
     // Add title "DOANH SỐ BÁN HÀNG THEO NHÂN VIÊN" at row 1
     XLSX.utils.sheet_add_aoa(ws, [["DOANH SỐ BÁN HÀNG THEO NHÂN VIÊN"]], {
-      origin: "A1", // Đặt tiêu đề tại dòng 1, cột A
+      origin: "D2", // Đặt tiêu đề tại dòng 1, cột A
     });
 
     // Adjust the range to include the title row
     const range = XLSX.utils.decode_range(ws["!ref"]);
     range.e.r += 1; // Increase the range to include the title
     ws["!ref"] = XLSX.utils.encode_range(range);
-
+    ws["!cols"] = Object.keys(ws).map(() => ({
+      wch: 20, // Chiều rộng mặc định là 20 ký tự, bạn có thể điều chỉnh giá trị này
+    }));
     // Create the workbook and add the sheet
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Doanh số nhân viên");

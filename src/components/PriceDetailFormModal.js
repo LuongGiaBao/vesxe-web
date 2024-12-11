@@ -58,38 +58,35 @@ const PriceDetailFormModal = ({
   const handleOk = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+
     try {
       const values = await form.validateFields();
-      // Kiểm tra trùng lặp dữ liệu
-      const isDuplicate = await checkDuplicatePriceDetail(
-        values.MaChiTietGia,
-        values.trip,
-        values.Gia
-      );
-      if (isDuplicate) {
-        message.error("Chi tiết giá với tuyến và giá này đã tồn tại!");
-        return;
-      }
+
+      // Chuẩn bị dữ liệu để gửi
       const submitData = {
         data: {
           MaChiTietGia: values.MaChiTietGia,
-          Gia: Number(values.Gia), // Chuyển đổi giá thành số
-          trip: { connect: [{ id: values.trip }] }, // ID của chuyến đi
-          ticket_price: { connect: [{ id: priceId }] }, // ID của bảng giá
+          Gia: Number(values.Gia),
+          trip: { connect: [{ id: values.trip }] },
+          ticket_price: { connect: [{ id: priceId }] },
         },
       };
 
+      // Gửi dữ liệu, kiểm tra trạng thái đang sửa hoặc thêm mới
       if (editingPriceDetail) {
         await updatePriceDetail(editingPriceDetail.id, submitData.data);
       } else {
         await createPriceDetail(submitData.data);
       }
 
+      // Hiển thị thông báo thành công
       message.success(
         editingPriceDetail
-          ? "Cập nhật chi tiết giá thành công"
-          : "Thêm chi tiết giá thành công"
+          ? "Cập nhật chi tiết giá thành công!"
+          : "Thêm chi tiết giá thành công!"
       );
+
+      // Reset form và làm mới giao diện
       form.resetFields();
       onCancel();
       await reloadData();
@@ -98,8 +95,12 @@ const PriceDetailFormModal = ({
       }
     } catch (error) {
       console.error("Validation failed:", error);
+      message.error("Có lỗi xảy ra khi xử lý dữ liệu.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   const handleDelete = async () => {
     if (editingPriceDetail) {
       try {

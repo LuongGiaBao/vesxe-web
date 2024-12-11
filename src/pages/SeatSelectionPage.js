@@ -17,6 +17,7 @@ import { createCustomer, updateCustomer } from "../api/CustomerApi";
 
 const { Text } = Typography;
 
+// Component hiển thị danh sách khuyến mãi
 const PromotionModal = ({
   visible,
   onClose,
@@ -32,6 +33,7 @@ const PromotionModal = ({
     }
   }, [visible]);
 
+  // Load danh sách khuyến mãi
   const loadPromotions = async () => {
     try {
       setLoading(true);
@@ -47,7 +49,6 @@ const PromotionModal = ({
         );
       });
 
-      // Tính toán mức giảm giá cho từng khuyến mãi
       const promotionsWithDiscounts = activePromotions.map((promotion) => {
         const detailPromotions = promotion.attributes.detail_promotions.data;
         const maxDiscount = detailPromotions.reduce((max, detail) => {
@@ -83,6 +84,7 @@ const PromotionModal = ({
     }
   };
 
+  // Áp dụng khuyến mãi
   const handleApplyPromotion = (promotion) => {
     const detailPromotions = promotion.attributes.detail_promotions.data;
     const applicablePromotion = detailPromotions.find((detail) => {
@@ -405,30 +407,87 @@ const SeatSelectionPage = () => {
     );
   };
 
+  // const handleNavigateToPayment = async () => {
+  //   if (selectedSeats.length === 0) {
+  //     message.error("Vui lòng chọn ít nhất một ghế trước khi thanh toán.");
+  //     return;
+  //   }
+  //   await saveCustomerInfo();
+
+  //   if (!customerInfo.name || !customerInfo.phone || !customerInfo.email) {
+  //     message.error("Vui lòng điền đầy đủ thông tin khách hàng.");
+  //     return;
+  //   }
+
+  //   const calculatedTotalAmount = selectedSeats.length * selectedTrip.price;
+
+  //   let finalAmount = calculatedTotalAmount;
+  //   let promotionInfo = null;
+
+  //   if (selectedPromotion) {
+  //     finalAmount = calculatedTotalAmount - selectedPromotion.discountAmount;
+  //     promotionInfo = {
+  //       promotionId: selectedPromotion.promotionId,
+  //       promotionCode: selectedPromotion.promotionCode,
+  //       discountAmount: selectedPromotion.discountAmount,
+  //       description: selectedPromotion.description,
+  //     };
+  //   }
+
+  //   const bookingDetails = {
+  //     tripInfo: {
+  //       id: selectedTrip.id,
+  //       departureStation: selectedTrip.departureStation,
+  //       destinationStation: selectedTrip.destinationStation,
+  //       departureTime: selectedTrip.departureTime,
+  //       price: selectedTrip.price,
+  //     },
+  //     selectedSeats: selectedSeats.map((seatNumber) => {
+  //       return seatNumber <= 17
+  //         ? "A" + String(seatNumber).padStart(2, "0")
+  //         : "B" + String(seatNumber - 17).padStart(2, "0");
+  //     }),
+  //     customerInfo: {
+  //       name: customerInfo.name,
+  //       phone: customerInfo.phone,
+  //       email: customerInfo.email,
+  //     },
+  //     totalAmount: calculatedTotalAmount,
+  //     finalAmount: finalAmount,
+  //     promotion: promotionInfo,
+  //   };
+
+  //   localStorage.setItem("pendingBooking", JSON.stringify(bookingDetails));
+  //   navigate("/payment", { state: { bookingDetails } });
+  //   localStorage.removeItem("pendingBooking");
+  // };
   const handleNavigateToPayment = async () => {
     if (selectedSeats.length === 0) {
       message.error("Vui lòng chọn ít nhất một ghế trước khi thanh toán.");
       return;
     }
     await saveCustomerInfo();
-
     if (!customerInfo.name || !customerInfo.phone || !customerInfo.email) {
       message.error("Vui lòng điền đầy đủ thông tin khách hàng.");
       return;
     }
 
-    const calculatedTotalAmount = selectedSeats.length * selectedTrip.price;
+    const calculatedTotalAmount = selectedSeats.length * ticketPrice; // ticketPrice là 200.000đ
 
     let finalAmount = calculatedTotalAmount;
     let promotionInfo = null;
 
-    if (selectedPromotion) {
-      finalAmount = calculatedTotalAmount - selectedPromotion.discountAmount;
+    // Tự động áp dụng khuyến mãi
+    const autoAppliedPromotion = await fetchAndApplyPromotion(
+      calculatedTotalAmount
+    );
+    if (autoAppliedPromotion) {
+      finalAmount = calculatedTotalAmount - autoAppliedPromotion.discountAmount;
       promotionInfo = {
-        promotionId: selectedPromotion.promotionId,
-        promotionCode: selectedPromotion.promotionCode,
-        discountAmount: selectedPromotion.discountAmount,
-        description: selectedPromotion.description,
+        promotionId: autoAppliedPromotion.promotionId,
+        promotionCode: autoAppliedPromotion.promotionCode,
+        discountAmount: autoAppliedPromotion.discountAmount,
+        description: autoAppliedPromotion.description,
       };
     }
 
@@ -460,6 +519,64 @@ const SeatSelectionPage = () => {
     localStorage.removeItem("pendingBooking");
   };
 
+  const fetchAndApplyPromotion = async (totalAmount) => {
+    const promotions = await fetchAllPromotions();
+    const today = new Date();
+    const activePromotions = promotions.data.filter((promotion) => {
+      const startDate = new Date(promotion.attributes.startDate);
+      const endDate = new Date(promotion.attributes.endDate);
+      return (
+        promotion.attributes.status === "Hoạt động" &&
+        startDate <= today &&
+        endDate >= today
+      );
+    });
+
+    let bestPromotion = null;
+    let maxDiscount = 0;
+
+    for (const promotion of activePromotions) {
+      const detailPromotions = promotion.attributes.detail_promotions.data;
+      for (const detail of detailPromotions) {
+        const attributes = detail.attributes;
+        let discountAmount = 0;
+
+        // Kiểm tra điều kiện áp dụng khuyến mãi
+        if (totalAmount >= attributes.TongTienHoaDon) {
+          if (attributes.LoaiKhuyenMai === "Tặng tiền") {
+            discountAmount = attributes.SoTienTang; // 100.000đ
+          } else if (attributes.LoaiKhuyenMai === "Chiết khấu hóa đơn") {
+            discountAmount = Math.min(
+              (totalAmount * attributes.PhanTramChietKhau) / 100,
+              attributes.SoTienKhuyenMaiToiDa || Infinity // 200.000đ
+            );
+          }
+
+          // Cập nhật khuyến mãi tốt nhất nếu có
+          if (discountAmount > maxDiscount) {
+            maxDiscount = discountAmount;
+            bestPromotion = {
+              promotionId: promotion.id,
+              promotionCode: promotion.attributes.IDPromotion,
+              discountAmount: discountAmount,
+              description: attributes.description,
+            };
+          }
+        }
+      }
+    }
+
+    return bestPromotion; // Trả về khuyến mãi tốt nhất
+  };
+
+  useEffect(() => {
+    // Lấy thông tin khách hàng từ localStorage
+    const storedCustomerInfo = localStorage.getItem("customerInfo");
+    if (storedCustomerInfo) {
+      const parsedInfo = JSON.parse(storedCustomerInfo);
+      setCustomerInfo(parsedInfo);
+    }
+  }, []);
   return (
     <div className="seat-selection-page flex flex-col items-center min-h-screen">
       <Card bordered={true} className="w-full ">
@@ -562,6 +679,7 @@ const SeatSelectionPage = () => {
               bordered={true}
               className="p-4 border border-gray-300 shadow-md rounded-lg"
             >
+              <p>Giá vé: {ticketPrice.toLocaleString()} ₫</p>
               <p>
                 Ghế đã chọn:{" "}
                 {selectedSeats.length > 0
@@ -574,7 +692,7 @@ const SeatSelectionPage = () => {
                       .join(", ") + ` (${selectedSeats.length} ghế)`
                   : "Chưa chọn"}
               </p>
-              <p>Giá vé lượt đi: {ticketPrice.toLocaleString()} ₫</p>
+
               <p>Tổng tiền: {totalAmount?.toLocaleString()} ₫</p>
               {selectedPromotion && (
                 <div>
@@ -587,13 +705,13 @@ const SeatSelectionPage = () => {
                   </Text>
                 </div>
               )}
-              <Button
+              {/* <Button
                 type="primary"
                 onClick={() => setIsModalVisible(true)}
                 style={{ marginBottom: 20 }}
               >
                 Chọn khuyến mẫi
-              </Button>
+              </Button> */}
             </Card>
 
             <Button

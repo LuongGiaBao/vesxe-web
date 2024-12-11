@@ -166,17 +166,57 @@ const PriceManagement = () => {
     }
   };
 
+  // const handleDeletePriceDetail = async (id, record) => {
+  //   const detailPrices = currentPrice?.attributes?.detai_prices?.data || [];
+  //   const priceDetailToDelete = detailPrices.find((detail) => detail.id === id);
+
+  //   // Kiểm tra xem chi tiết giá có tồn tại không
+  //   if (!priceDetailToDelete) {
+  //     message.error("Chi tiết giá không tồn tại.");
+  //     return;
+  //   }
+
+  //   const currentPrice = prices.find((price) => price.id === record.id);
+
+  //   // Kiểm tra trạng thái bảng giá trước khi xác nhận xóa chi tiết
+  //   if (currentPrice && currentPrice.attributes.status === "Hoạt động") {
+  //     message.error("Không thể xóa chi tiết giá vì bảng giá đang hoạt động.");
+  //     return;
+  //   }
+
+  //   // Tiến hành xóa chi tiết giá
+  //   confirm({
+  //     title: "Bạn có chắc chắn muốn xóa chi tiết giá này?",
+  //     icon: <ExclamationCircleOutlined />,
+  //     content: "Hành động này không thể hoàn tác.",
+  //     okText: "Xóa",
+  //     okType: "danger",
+  //     cancelText: "Hủy",
+  //     onOk: async () => {
+  //       try {
+  //         await deletePriceDetail(id);
+  //         message.success("Xóa chi tiết giá thành công");
+  //         loadPriceDetails();
+  //         loadPrices();
+  //       } catch (error) {
+  //         message.error("Có lỗi xảy ra khi xóa chi tiết giá");
+  //       }
+  //     },
+  //   });
+  // };
   const handleDeletePriceDetail = async (id, record) => {
-    const detailPrices = currentPrice?.attributes?.detai_prices?.data || [];
-    const priceDetailToDelete = detailPrices.find((detail) => detail.id === id);
+    // Corrected order of variable usage
+    const currentPrice = prices.find((price) => price.id === record);
 
-    // Kiểm tra xem chi tiết giá có tồn tại không
-    if (!priceDetailToDelete) {
-      message.error("Chi tiết giá không tồn tại.");
-      return;
-    }
+    // const detailPrices = currentPrice?.attributes?.detai_prices?.data || [];
+    // const priceDetailToDelete = detailPrices.find((detail) => detail.id === id);
+    // console.log("currentPrice", currentPrice);
 
-    const currentPrice = prices.find((price) => price.id === record.id);
+    // // Kiểm tra xem chi tiết giá có tồn tại không
+    // if (!priceDetailToDelete) {
+    //   message.error("Chi tiết giá không tồn tại.");
+    //   return;
+    // }
 
     // Kiểm tra trạng thái bảng giá trước khi xác nhận xóa chi tiết
     if (currentPrice && currentPrice.attributes.status === "Hoạt động") {
@@ -355,7 +395,7 @@ const PriceManagement = () => {
                       "Không thể xóa chi tiết giá vì bảng giá đang hoạt động."
                     );
                   } else {
-                    handleDeletePriceDetail(detail.id, detail);
+                    handleDeletePriceDetail(detail.id, record.id);
                   }
                 }}
               >

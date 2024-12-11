@@ -52,10 +52,10 @@ const BusFormModal = ({ visible, onCancel, onOk, initialValues }) => {
           name="BienSo"
           rules={[
             { required: true, message: "Vui lòng nhập biển số xe!" },
-            {
-              pattern: /^[A-Z0-9]+$/,
-              message: "Biển số xe chỉ được chứa chữ in hoa và số!",
-            },
+            // {
+            //   pattern: /^[A-Z0-9]+$/,
+            //   message: "Biển số xe chỉ được chứa chữ in hoa và số!",
+            // },
           ]}
         >
           <Input placeholder="Nhập biển số xe" maxLength={10} />

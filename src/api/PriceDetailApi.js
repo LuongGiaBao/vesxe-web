@@ -98,19 +98,62 @@ export const getPriceDetailsByTripId = async (tripId) => {
 };
 
 // PriceDetailApi.js
+// export const checkDuplicatePriceDetail = async (maChiTietGia, tripId, gia) => {
+//   try {
+//     // Truy vấn API với các bộ lọc cho MaChiTietGia, Gia và tripId
+//     const response = await apiClient.get(
+//       `/detai-prices?filters[MaChiTietGia][$eq]=${maChiTietGia}&filters[Gia][$eq]=${gia}&filters[trip][id][$eq]=${tripId}`
+//     );
+//     const data = await response.json();
+
+//     // Kiểm tra xem có bản ghi nào trùng lặp không
+//     const isDuplicate = data.data.length > 0;
+//     return isDuplicate;
+//   } catch (error) {
+//     console.error("Error checking for duplicates:", error);
+//     return false; // Trả về false nếu có lỗi
+//   }
+// };
+
 export const checkDuplicatePriceDetail = async (maChiTietGia, tripId, gia) => {
   try {
-    // Truy vấn API với các bộ lọc cho MaChiTietGia, Gia và tripId
-    const response = await apiClient.get(
-      `/detai-prices?filters[MaChiTietGia][$eq]=${maChiTietGia}&filters[Gia][$eq]=${gia}&filters[trip][id][$eq]=${tripId}`
-    );
-    const data = await response.json();
+    const response = await apiClient.get(`/detai-prices`, {
+      params: {
+        populate: {
+          trip: {
+            populate: ["departure_location_id", "arrival_location_id"],
+          },
+        },
+        filters: {
+          MaChiTietGia: { $eq: maChiTietGia },
+          Gia: { $eq: gia },
+          "trip.id": { $eq: tripId },
+        },
+      },
+    });
 
-    // Kiểm tra xem có bản ghi nào trùng lặp không
-    const isDuplicate = data.data.length > 0;
+    // Kiểm tra trạng thái API
+    if (response.status !== 200) {
+      console.error("Failed to fetch data:", response);
+      return false;
+    }
+
+    const data = response.data?.data || []; // Lấy mảng `data` từ phản hồi
+
+    // Kiểm tra trùng lặp
+    const isDuplicate = data.some((item) => {
+      const tripData = item.attributes.trip.data;
+      return (
+        item.attributes.MaChiTietGia === maChiTietGia &&
+        item.attributes.Gia === gia &&
+        tripData &&
+        tripData.id === tripId
+      );
+    });
+
     return isDuplicate;
   } catch (error) {
     console.error("Error checking for duplicates:", error);
-    return false; // Trả về false nếu có lỗi
+    return false; // Trả về false nếu gặp lỗi
   }
 };

@@ -79,7 +79,11 @@ const PromotionManagement = () => {
     }
   };
 
-  const handleDeletePromotion = async (id) => {
+  const handleDeletePromotion = async (id, status) => {
+    if (status === "Hoạt động") {
+      message.warning("Không thể xóa khuyến mãi đang hoạt động.");
+      return;
+    }
     confirm({
       title: "Bạn có chắc chắn muốn xóa khuyến mãi này?",
       icon: <ExclamationCircleOutlined />,
@@ -100,14 +104,48 @@ const PromotionManagement = () => {
   };
 
   const handleAddPromotionDetail = (promotionId) => {
-    console.log("promotionId", promotionId);
-
     setSelectedPromotionId(promotionId);
     setEditingPromotionDetail(null);
     setIsPromotionDetailModalVisible(true);
   };
 
-  const handleDeletePromotionDetail = async (id) => {
+  // const handleDeletePromotionDetail = async (id, status) => {
+  //   const promotion = promotions.find((promo) => promo.id === id);
+
+  //   if (promotion?.attributes?.status === "Hoạt động") {
+  //     message.warning(
+  //       "Không thể xóa chi tiết khuyến mãi khi khuyến mãi đang hoạt động."
+  //     );
+  //     return;
+  //   }
+  //   confirm({
+  //     title: "Bạn có chắc chắn muốn xóa chi tiết khuyến mãi này?",
+  //     icon: <ExclamationCircleOutlined />,
+  //     content: "Hành động này không thể hoàn tác.",
+  //     okText: "Xóa",
+  //     okType: "danger",
+  //     cancelText: "Hủy",
+  //     onOk: async () => {
+  //       try {
+  //         await deletePromotionDetail(id);
+  //         message.success("Xóa chi tiết khuyến mãi thành công");
+  //         loadPromotions();
+  //       } catch (error) {
+  //         message.error("Có lỗi xảy ra khi xóa chi tiết khuyến mãi");
+  //       }
+  //     },
+  //   });
+  // };
+  const handleDeletePromotionDetail = async (detailId, promotionId) => {
+    const promotion = promotions.find((promo) => promo.id === promotionId);
+
+    if (promotion?.attributes?.status === "Hoạt động") {
+      message.warning(
+        "Không thể xóa chi tiết khuyến mãi khi khuyến mãi đang hoạt động."
+      );
+      return;
+    }
+
     confirm({
       title: "Bạn có chắc chắn muốn xóa chi tiết khuyến mãi này?",
       icon: <ExclamationCircleOutlined />,
@@ -117,7 +155,7 @@ const PromotionManagement = () => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await deletePromotionDetail(id);
+          await deletePromotionDetail(detailId);
           message.success("Xóa chi tiết khuyến mãi thành công");
           loadPromotions();
         } catch (error) {
@@ -220,7 +258,12 @@ const PromotionManagement = () => {
           >
             Sửa
           </Button>
-          <Button danger onClick={() => handleDeletePromotion(record.id)}>
+          <Button
+            danger
+            onClick={() =>
+              handleDeletePromotion(record.id, record.attributes.status)
+            }
+          >
             Xóa
           </Button>
           {/* <Button
@@ -273,7 +316,7 @@ const PromotionManagement = () => {
             </Button>
             <Button
               danger
-              onClick={() => handleDeletePromotionDetail(detail.id)}
+              onClick={() => handleDeletePromotionDetail(detail.id, record.id)}
             >
               Xóa
             </Button>
