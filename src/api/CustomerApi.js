@@ -183,7 +183,21 @@ export const registerCustomer = async (username, email, password) => {
       password: password,
       type: "customer",
     });
+    console.log("response.data", response.data);
     return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const checkUsernameExists = async (username) => {
+  try {
+    const response = await apiClient.get(
+      `users?filters[username][$eq]=${username}`
+    ); // Thay đổi endpoint nếu cần
+    console.log("Resspon", response.data);
+
+    return response.data.length > 0; // Giả sử API trả về danh sách khách hàng
   } catch (error) {
     throw error;
   }

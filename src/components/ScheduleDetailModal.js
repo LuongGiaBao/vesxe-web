@@ -34,15 +34,15 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
-      case 'hoạt động':
-        return 'green';
-      case 'ngưng hoạt động':
-        return 'red';
+      case "hoạt động":
+        return "green";
+      case "ngưng hoạt động":
+        return "red";
       default:
-        return 'default';
+        return "default";
     }
   };
-  
+
   return (
     <Modal
       title="Chi Tiết Lịch Trình"
@@ -144,7 +144,7 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
                 {MaTuyen.data.attributes.MaDiemDon.data.attributes.MaDiemDon}
               </div>
               <div>
-                <strong>Địa điểm:</strong>{" "}
+                <strong>Địa đón:</strong>{" "}
                 {MaTuyen.data.attributes.MaDiemDon.data.attributes.location}
               </div>
               <div>
@@ -166,7 +166,7 @@ const ScheduleDetailModal = ({ visible, onCancel, schedule }) => {
                 {MaTuyen.data.attributes.MaDiemTra.data.attributes.MaDiemTra}
               </div>
               <div>
-                <strong>Địa điểm:</strong>{" "}
+                <strong>Địa trả:</strong>{" "}
                 {MaTuyen.data.attributes.MaDiemTra.data.attributes.location}
               </div>
               <div>

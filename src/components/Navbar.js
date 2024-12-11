@@ -39,6 +39,7 @@ const Navbar = () => {
     // Xóa thông tin user và token từ localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("customerInfo");
     setUser(null);
     message.success("Đăng xuất thành công");
     navigate("/");
