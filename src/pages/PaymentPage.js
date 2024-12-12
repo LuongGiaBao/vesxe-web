@@ -42,9 +42,99 @@ const PaymentPage = () => {
     navigate(-1);
   };
 
+  // const handlePayment = async () => {
+  //   const user = JSON.parse(localStorage.getItem("user"));
+
+  //   if (!user) {
+  //     localStorage.setItem(
+  //       "pendingBookingDetails",
+  //       JSON.stringify(bookingDetails)
+  //     );
+  //     message.warning("Vui lòng đăng nhập trước khi thực hiện thanh toán.");
+  //     navigate("/login");
+  //     return;
+  //   }
+
+  //   try {
+  //     setLoading(true);
+  //     // Tính toán số tiền cuối cùng sau khi áp dụng khuyến mãi
+  //     const finalAmount = bookingDetails.promotion
+  //       ? bookingDetails.totalAmount - bookingDetails.promotion.discountAmount
+  //       : bookingDetails.totalAmount;
+
+  //     const response = await axios.post("http://localhost:5000/payment", {
+  //       amount: finalAmount,
+  //       userId: bookingDetails.customerInfo.email,
+  //       description: `Thanh toán vé xe từ ${bookingDetails.tripInfo.departureStation} đến ${bookingDetails.tripInfo.destinationStation}`,
+  //       bookingDetails: {
+  //         ...bookingDetails,
+  //         finalAmount: finalAmount,
+  //         promotionDetails: bookingDetails.promotion
+  //           ? {
+  //               promotionId: bookingDetails.promotion.promotionId,
+  //               promotionCode: bookingDetails.promotion.promotionCode,
+  //               discountAmount: bookingDetails.promotion.discountAmount,
+  //               description: bookingDetails.promotion.description,
+  //             }
+  //           : null,
+  //       },
+  //     });
+
+  //     if (
+  //       response.data &&
+  //       response.data.order_url &&
+  //       response.data.appTransID
+  //     ) {
+  //       localStorage.setItem("currentAppTransID", response.data.appTransID);
+  //       localStorage.setItem("paymentInitiated", "true");
+
+  //       const updatedBookingDetails = {
+  //         ...bookingDetails,
+  //         paymentStatus: "pending",
+  //         appTransID: response.data.appTransID,
+  //         finalAmount: finalAmount,
+  //       };
+  //       localStorage.setItem(
+  //         "bookingDetails",
+  //         JSON.stringify(updatedBookingDetails)
+  //       );
+
+  //       const paymentWindow = window.open(response.data.order_url, "_blank");
+
+  //       const checkPaymentStatus = setInterval(async () => {
+  //         try {
+  //           const statusResponse = await axios.get(
+  //             `http://localhost:5000/payment/status/${response.data.appTransID}`
+  //           );
+  //           if (statusResponse.data.status === "completed") {
+  //             clearInterval(checkPaymentStatus);
+  //             message.success("Thanh toán thành công!");
+  //             navigate("/booking-success", {
+  //               state: { bookingDetails: statusResponse.data.bookingDetails },
+  //             });
+  //           } else if (statusResponse.data.status === "failed") {
+  //             clearInterval(checkPaymentStatus);
+  //             message.error("Thanh toán thất bại. Vui lòng thử lại.");
+  //           }
+  //         } catch (error) {
+  //           console.error("Error checking payment status:", error);
+  //         }
+  //       }, 5000);
+
+  //       return () => clearInterval(checkPaymentStatus);
+  //     } else {
+  //       throw new Error("Invalid payment response");
+  //     }
+  //   } catch (error) {
+  //     console.error("Payment error:", error);
+  //     message.error("Có lỗi xảy ra khi tạo yêu cầu thanh toán");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handlePayment = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
-
+  
     if (!user) {
       localStorage.setItem(
         "pendingBookingDetails",
@@ -54,14 +144,14 @@ const PaymentPage = () => {
       navigate("/login");
       return;
     }
-
+  
     try {
       setLoading(true);
       // Tính toán số tiền cuối cùng sau khi áp dụng khuyến mãi
       const finalAmount = bookingDetails.promotion
         ? bookingDetails.totalAmount - bookingDetails.promotion.discountAmount
         : bookingDetails.totalAmount;
-
+  
       const response = await axios.post("http://localhost:5000/payment", {
         amount: finalAmount,
         userId: bookingDetails.customerInfo.email,
@@ -79,7 +169,7 @@ const PaymentPage = () => {
             : null,
         },
       });
-
+  
       if (
         response.data &&
         response.data.order_url &&
@@ -87,7 +177,7 @@ const PaymentPage = () => {
       ) {
         localStorage.setItem("currentAppTransID", response.data.appTransID);
         localStorage.setItem("paymentInitiated", "true");
-
+  
         const updatedBookingDetails = {
           ...bookingDetails,
           paymentStatus: "pending",
@@ -98,9 +188,9 @@ const PaymentPage = () => {
           "bookingDetails",
           JSON.stringify(updatedBookingDetails)
         );
-
+  
         const paymentWindow = window.open(response.data.order_url, "_blank");
-
+  
         const checkPaymentStatus = setInterval(async () => {
           try {
             const statusResponse = await axios.get(
@@ -109,6 +199,10 @@ const PaymentPage = () => {
             if (statusResponse.data.status === "completed") {
               clearInterval(checkPaymentStatus);
               message.success("Thanh toán thành công!");
+  
+              // Gọi API để lưu thông tin hóa đơn
+             // await saveInvoice(updatedBookingDetails, user);
+  
               navigate("/booking-success", {
                 state: { bookingDetails: statusResponse.data.bookingDetails },
               });
@@ -120,7 +214,7 @@ const PaymentPage = () => {
             console.error("Error checking payment status:", error);
           }
         }, 5000);
-
+  
         return () => clearInterval(checkPaymentStatus);
       } else {
         throw new Error("Invalid payment response");
@@ -132,7 +226,37 @@ const PaymentPage = () => {
       setLoading(false);
     }
   };
-
+  
+  // const saveInvoice = async (bookingDetails, user) => {
+  //   try {
+  //     const invoiceData = {
+  //       customerId: user.id,
+  //       employeeId: null, // Nếu có nhân viên hỗ trợ, thêm mã nhân viên
+  //       scheduleId: bookingDetails.tripInfo.scheduleId,
+  //       paymentMethod: "online", // hoặc các giá trị khác như "cash"
+  //       type: "ticket_payment",
+  //       status: "completed",
+  //       detail_invoices: bookingDetails.selectedSeats.map((seat) => ({
+  //         ticketId: seat.ticketId,
+  //         detailPriceId: bookingDetails.detailPriceId, // ID chi tiết giá
+  //         quantity: 1,
+  //         totalPrice: bookingDetails.finalAmount / bookingDetails.selectedSeats.length,
+  //       })),
+  //     };
+  
+  //     const response = await axios.post("http://localhost:5000/invoices", invoiceData);
+  
+  //     if (response.status === 201) {
+  //       message.success("Hóa đơn đã được lưu thành công.");
+  //     } else {
+  //       throw new Error("Error saving invoice");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving invoice:", error);
+  //     message.error("Có lỗi xảy ra khi lưu hóa đơn.");
+  //   }
+  // };
+  
   if (!bookingDetails) {
     return (
       <div className="payment-page">

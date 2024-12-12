@@ -18,13 +18,13 @@ export const createInvoice = async (invoiceData) => {
         MaHoaDon: invoiceData.MaHoaDon,
         PhuongThucThanhToan: invoiceData.PhuongThucThanhToan,
         status: invoiceData.status,
-        customerId: invoiceData.customerId, 
-        employeeId: invoiceData.employeeId, 
-        scheduleId: invoiceData.scheduleId, 
+        customerId: invoiceData.customerId,
+        employeeId: invoiceData.employeeId,
+        scheduleId: invoiceData.scheduleId,
       },
     });
 
-    console.log(response.data.customerId); 
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating invoice:", error);
@@ -38,9 +38,9 @@ export const updateInvoice = async (id, invoiceData) => {
         MaHoaDon: invoiceData.MaHoaDon,
         PhuongThucThanhToan: invoiceData.PhuongThucThanhToan,
         status: invoiceData.status,
-        customerId: invoiceData.customerId, 
+        customerId: invoiceData.customerId,
         employeeId: invoiceData.employeeId,
-        scheduleId: invoiceData.scheduleId, 
+        scheduleId: invoiceData.scheduleId,
       },
     });
     return response.data;

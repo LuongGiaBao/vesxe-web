@@ -132,8 +132,8 @@ const CustomerManagement = () => {
     { title: "Mã KH", dataIndex: "MaKH", key: "MaKH" },
     { title: "Tên Khách Hàng", dataIndex: "TenKH", key: "TenKH" },
     { title: "Email", dataIndex: "Email", key: "Email" },
-    { title: "Địa Chỉ", dataIndex: "DiaChi", key: "DiaChi" },
-    { title: "Giới Tính", dataIndex: "GioiTinh", key: "GioiTinh" },
+    // { title: "Địa Chỉ", dataIndex: "DiaChi", key: "DiaChi" },
+    // { title: "Giới Tính", dataIndex: "GioiTinh", key: "GioiTinh" },
     {
       title: "Số Điện Thoại",
       dataIndex: "DienThoai",

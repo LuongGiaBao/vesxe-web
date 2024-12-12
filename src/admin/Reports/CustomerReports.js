@@ -8,6 +8,8 @@ import { Table, Tag, Button, Space, DatePicker } from "antd";
 const { RangePicker } = DatePicker;
 const CustomerSalesReport = () => {
   const [reportData, setReportData] = useState([]);
+  console.log("reportData", reportData);
+
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -142,67 +144,130 @@ const CustomerSalesReport = () => {
   //   XLSX.writeFile(wb, "doanh_thu_theo_khach_hang.xlsx");
   // };
 
+  // useEffect(() => {
+  //   const fetchReportData = async () => {
+  //     try {
+  //       const response = await fetchAllCustomReport();
+  //       console.log("Dữ liệu từ API:", response.data);
+  //       const formattedData = response.data.map((item) => {
+
+  //         const customers = item.attributes.customers?.data || [];
+  //         const customerList = customers.map((customer) => {
+  //           return {
+  //             id: customer.id,
+  //             customerCode: customer.attributes.MaKH || "Không có",
+  //             customerName: customer.attributes.TenKH || "Không có",
+  //             address: customer.attributes.DiaChi || "-",
+  //             customerGroup: customer.attributes.type || "Không có",
+  //           };
+  //         });
+
+  //         const promotion =
+  //           item.attributes.detail_promotion?.data?.attributes || {};
+
+  //         // Lấy các giá trị liên quan đến chiết khấu
+  //         const salesBeforeDiscount = Number(
+  //           item.attributes.DoanhSoTruocChietKhau || 0
+  //         );
+  //         const discountPercent = promotion.PhanTramChietKhau || 0;
+  //         const maxDiscount = promotion.SoTienKhuyenMaiToiDa || 0;
+
+  //         // Tính toán số tiền chiết khấu
+  //         const discountAmount = Math.min(
+  //           (salesBeforeDiscount * discountPercent) / 100,
+  //           maxDiscount || Infinity
+  //         );
+
+  //         // Tính doanh số sau chiết khấu
+  //         const salesAfterDiscount = salesBeforeDiscount - discountAmount;
+
+  //         return customerList.map((customer) => {
+  //           return {
+  //             ...customer,
+  //             productGroup: promotion.description || "Không có",
+  //             industry: promotion.MaChiTietKhuyenMai || "Không có",
+  //             salesBeforeDiscount: salesBeforeDiscount,
+  //             discount: discountPercent,
+  //             salesAfterDiscount: salesAfterDiscount,
+  //             createdAt: item.attributes.createdAt,
+  //           };
+  //         });
+  //       });
+
+  //       const flattenedData = formattedData.flat();
+
+  //       // const filteredData = flattenedData.filter((item) => {
+  //       //   const saleDate = moment(item.createdAt); // Lấy ngày từ trường createdAt
+  //       //   // Kiểm tra xem saleDate có hợp lệ không
+  //       //   if (!saleDate.isValid()) {
+  //       //     console.error("Ngày không hợp lệ:", item.createdAt);
+  //       //     return false; // Bỏ qua các bản ghi có ngày không hợp lệ
+  //       //   }
+  //       //   return saleDate.isBetween(startDate, endDate, null, "[]"); // Kiểm tra xem ngày có nằm trong khoảng không
+  //       // });
+  //       const sortedData = flattenedData.sort((a, b) => a.id - b.id);
+  //       setReportData(sortedData);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Lỗi khi tải dữ liệu", error);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchReportData();
+  // }, [startDate, endDate]);
   useEffect(() => {
-    const fetchReportData = async () => {
+    const fetchCustomerStatistics = async () => {
       try {
         const response = await fetchAllCustomReport();
         console.log("Dữ liệu từ API:", response.data);
+
         const formattedData = response.data.map((item) => {
-          const customers = item.attributes.customers?.data || [];
-          const customerList = customers.map((customer) => {
-            return {
-              id: customer.id,
-              customerCode: customer.attributes.MaKH || "Không có",
-              customerName: customer.attributes.TenKH || "Không có",
-              address: customer.attributes.DiaChi || "-",
-              customerGroup: customer.attributes.type || "Không có",
-            };
-          });
+          const customerAttributes = item.attributes || {};
 
-          const promotion =
-            item.attributes.detail_promotion?.data?.attributes || {};
+          // Extract customer data
+          const customer = {
+            id: item.id,
+            customerCode: customerAttributes.MaKH || "Không có",
+            customerName: customerAttributes.TenKH || "Không có",
+            address: customerAttributes.DiaChi || "-",
+            phone: customerAttributes.DienThoai || "Không có",
+            email: customerAttributes.Email || "-",
+            customerGroup: customerAttributes.type || "Không có",
+          };
 
-          // Lấy các giá trị liên quan đến chiết khấu
+          // Extract sales and promotion details
+          const salesData =
+            customerAttributes.customer_sale?.data?.attributes || {};
           const salesBeforeDiscount = Number(
-            item.attributes.DoanhSoTruocChietKhau || 0
+            salesData.DoanhSoTruocChietKhau || 0
           );
+          const salesAfterDiscount = Number(salesData.DoanhSoSauChietKhau || 0);
+
+          // Extract promotion details
+          const promotion =
+            customerAttributes.detail_promotion?.data?.attributes || {};
           const discountPercent = promotion.PhanTramChietKhau || 0;
           const maxDiscount = promotion.SoTienKhuyenMaiToiDa || 0;
-
-          // Tính toán số tiền chiết khấu
           const discountAmount = Math.min(
             (salesBeforeDiscount * discountPercent) / 100,
             maxDiscount || Infinity
           );
 
-          // Tính doanh số sau chiết khấu
-          const salesAfterDiscount = salesBeforeDiscount - discountAmount;
-
-          return customerList.map((customer) => {
-            return {
-              ...customer,
-              productGroup: promotion.description || "Không có",
-              industry: promotion.MaChiTietKhuyenMai || "Không có",
-              salesBeforeDiscount: salesBeforeDiscount,
-              discount: discountPercent,
-              salesAfterDiscount: salesAfterDiscount,
-              createdAt: item.attributes.createdAt,
-            };
-          });
+          // Final calculated data
+          return {
+            ...customer,
+            productGroup: promotion.description || "Không có",
+            industry: promotion.MaChiTietKhuyenMai || "Không có",
+            salesBeforeDiscount,
+            discount: discountPercent,
+            discountAmount,
+            salesAfterDiscount,
+            createdAt: customerAttributes.createdAt,
+          };
         });
 
-        const flattenedData = formattedData.flat();
-
-        // const filteredData = flattenedData.filter((item) => {
-        //   const saleDate = moment(item.createdAt); // Lấy ngày từ trường createdAt
-        //   // Kiểm tra xem saleDate có hợp lệ không
-        //   if (!saleDate.isValid()) {
-        //     console.error("Ngày không hợp lệ:", item.createdAt);
-        //     return false; // Bỏ qua các bản ghi có ngày không hợp lệ
-        //   }
-        //   return saleDate.isBetween(startDate, endDate, null, "[]"); // Kiểm tra xem ngày có nằm trong khoảng không
-        // });
-        const sortedData = flattenedData.sort((a, b) => a.id - b.id);
+        const sortedData = formattedData.sort((a, b) => a.id - b.id);
         setReportData(sortedData);
         setLoading(false);
       } catch (error) {
@@ -211,8 +276,9 @@ const CustomerSalesReport = () => {
       }
     };
 
-    fetchReportData();
+    fetchCustomerStatistics();
   }, [startDate, endDate]);
+
   const exportToExcel = () => {
     const filteredData = filterDataByDate();
     // Tính tổng doanh số sau CK
@@ -225,7 +291,7 @@ const CustomerSalesReport = () => {
     const formattedDataForExcel = reportData.map((item) => ({
       "Mã KH": item.customerCode,
       "Tên KH": item.customerName,
-      "Địa chỉ": item.address,
+      "Số điện thoại": item.phone,
       "Nhóm KH": item.customerGroup,
       //"Ngành Hàng": item.industry,
       "Doanh số trước CK": item.salesBeforeDiscount,
@@ -237,7 +303,7 @@ const CustomerSalesReport = () => {
     const totalRow = {
       "Mã KH": "",
       "Tên KH": "",
-      "Địa chỉ": "",
+      "Số điện thoại": "",
       "Nhóm KH": "",
       // "Ngành Hàng": "",
       "Doanh số trước CK": "Tổng cộng",
@@ -253,7 +319,7 @@ const CustomerSalesReport = () => {
       header: [
         "Mã KH",
         "Tên KH",
-        "Địa chỉ",
+        "Số điện thoại",
         "Nhóm KH",
         //"Ngành Hàng",
         "Doanh số trước CK",
@@ -352,9 +418,9 @@ const CustomerSalesReport = () => {
       key: "customerName",
     },
     {
-      title: "Địa chỉ",
-      dataIndex: "address",
-      key: "address",
+      title: "Số điện thoại",
+      dataIndex: "phone",
+      key: "phone",
     },
     {
       title: "Nhóm KH",
