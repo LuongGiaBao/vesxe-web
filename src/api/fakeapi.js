@@ -90,3 +90,24 @@ export const fetchTripSeats = (tripId) => {
     });
   };
   
+  // src/api/schedule.js
+export const FetchScheduleData = async () => {
+  // Dữ liệu giả lập
+  return [
+    {
+      diemdi: "TP. Hồ Chí Minh",
+      diemden: "Bà Rịa - Vũng Tàu",
+      thoigiankhoihanh: "08:00 AM, 05/09/2024",
+      thoigiandukien: "10:00 AM, 05/09/2024",
+      giave: 150000,
+    },
+    {
+      diemdi: "TP. Hồ Chí Minh",
+      diemden: "Nha Trang",
+      thoigiankhoihanh: "06:00 AM, 06/09/2024",
+      thoigiandukien: "12:00 PM, 06/09/2024",
+      giave: 250000,
+    },
+    // Thêm nhiều lịch trình khác nếu cần
+  ];
+};

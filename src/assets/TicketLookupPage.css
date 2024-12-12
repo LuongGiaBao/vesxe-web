@@ -1,0 +1,72 @@
+/* src/assets/style.css */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box; /* Đảm bảo padding và border không làm tăng kích thước phần tử */
+  }
+  
+  /* Cài đặt cho TicketLookupPage */
+  .TicketLookupPage {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Đảm bảo trang bao phủ toàn bộ chiều cao */
+    padding: 0; /* Đặt padding bằng 0 */
+    margin: 0; /* Đặt margin bằng 0 */
+  }
+  
+  .lookup-container {
+    flex: 1; /* Đảm bảo phần chính chiếm toàn bộ không gian trống */
+    width: 50%;
+    margin: 0 auto; /* Canh giữa theo chiều ngang */
+    padding: 40px;
+    text-align: center;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Canh giữa theo chiều dọc */
+  }
+  
+  .lookup-container h2 {
+    margin-bottom: 20px;
+    color: #004d40; /* Màu xanh đậm */
+    font-size: 24px;
+  }
+  
+  .lookup-input {
+    width: 96%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  .error-message {
+    color: red;
+    margin-bottom: 20px;
+  }
+  
+  .lookup-btn {
+    padding: 12px 20px;
+    background-color: #5CCC5C; /* Màu cam nhạt */
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  /* Đảm bảo footer nằm ở cuối trang */
+  .footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    margin-top: auto; /* Đẩy footer xuống dưới */
+  }
+  

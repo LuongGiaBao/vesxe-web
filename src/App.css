@@ -1,3 +1,6 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
 .App {
   text-align: center;
 }
@@ -35,4 +38,70 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* src/styles/modal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Đảm bảo modal nằm trên các phần tử khác */
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 400px; /* Độ rộng của modal */
+}
+
+.modal-content h2 {
+  margin-top: 0;
+}
+
+.edit-button {
+  background-color: #4caf50; /* Màu xanh lá */
+  color: white; /* Màu chữ trắng */
+  border: none; /* Không viền */
+  padding: 8px 16px; /* Khoảng cách bên trong */
+  cursor: pointer; /* Con trỏ chuột thành hình bàn tay */
+  border-radius: 4px; /* Bo góc */
+  margin-bottom: 10px;
+}
+
+.delete-button {
+  background-color: #f44336; /* Màu đỏ */
+  color: white; /* Màu chữ trắng */
+  border: none; /* Không viền */
+  padding: 8px 16px; /* Khoảng cách bên trong */
+  cursor: pointer; /* Con trỏ chuột thành hình bàn tay */
+  border-radius: 4px; /* Bo góc */
+}
+
+.edit-button:hover {
+  background-color: darkgreen; /* Màu xanh đậm khi hover */
+}
+
+.delete-button:hover {
+  background-color: darkred; /* Màu đỏ đậm khi hover */
+}
+
+.trip-details {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.sidebar {
+  position: fixed; /* Giữ sidebar cố định */
+  overflow-y: auto; /* Bật thanh cuộn */
+  height: 100%; /* Chiều cao toàn phần */
 }

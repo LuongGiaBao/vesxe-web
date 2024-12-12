@@ -1,120 +1,423 @@
-// src/pages/LoginPage.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import '../assets/LoginPage.css';
-import Footer from '../components/Footer';
-import logo from '../assets/image/logo.png';
-import illustration from '../assets/image/illustration.jpg';
+// import React, { useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import { message } from "antd";
 
-const LoginPage = () => {
-  const [activeTab, setActiveTab] = useState('register'); // Mặc định là tab "Đăng ký"
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  
-  const navigate = useNavigate(); // Tạo hook điều hướng
+// import "../assets/AuthPage.css";
+// import {
+//   loginCustomer,
+//   registerCustomer,
+//   findCustomerByEmail,
+// } from "../api/CustomerApi";
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setEmail('');
-    setPassword('');
+// const AuthPage = () => {
+//   const [isLogin, setIsLogin] = useState(true);
+//   const navigate = useNavigate();
+//   const [loading, setLoading] = useState(false);
+//   const [formData, setFormData] = useState({
+//     TenKH: "",
+//     Email: "",
+//     Password: "",
+//     DienThoai: "",
+//     DiaChi: "",
+//     GioiTinh: "Nam",
+//   });
+
+//   // Validate email
+//   const validateEmail = (email) => {
+//     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     return re.test(String(email).toLowerCase());
+//   };
+
+//   // Xử lý đăng nhập
+//   const handleLogin = async (event) => {
+//     event.preventDefault();
+//     setLoading(true);
+
+//     if (!validateEmail(formData.Email)) {
+//       message.error("Email không hợp lệ");
+//       setLoading(false);
+//       return;
+//     }
+
+//     try {
+//       const response = await loginCustomer(formData.Email, formData.Password);
+
+//       // Lưu thông tin người dùng
+//       localStorage.setItem("user", JSON.stringify(response.user));
+//       localStorage.setItem("jwt", response.jwt);
+
+//       message.success("Đăng nhập thành công");
+//       navigate("/");
+//     } catch (error) {
+//       message.error("Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Xử lý đăng ký
+//   const handleRegister = async (event) => {
+//     event.preventDefault();
+//     setLoading(true);
+
+//     if (!validateEmail(formData.Email)) {
+//       message.error("Email không hợp lệ");
+//       setLoading(false);
+//       return;
+//     }
+
+//     try {
+//       // Kiểm tra email đã tồn tại
+//       // const existingCustomer = await findCustomerByEmail(formData.Email);
+//       // if (existingCustomer) {
+//       //   message.error("Email đã được sử dụng");
+//       //   setLoading(false);
+//       //   return;
+//       // }
+
+//       const result = await registerCustomer(formData);
+
+//       // Lưu thông tin người dùng
+//       localStorage.setItem("user", JSON.stringify(result.user));
+//       localStorage.setItem("customer", JSON.stringify(result.customer));
+//       localStorage.setItem("jwt", result.jwt);
+
+//       message.success("Đăng ký thành công");
+//       navigate("/");
+//     } catch (error) {
+//       message.error("Đăng ký thất bại. Vui lòng thử lại.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Xử lý thay đổi form
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prevState) => ({
+//       ...prevState,
+//       [name]: value,
+//     }));
+//   };
+
+//   // Chuyển đổi giữa đăng nhập và đăng ký
+//   const handleSwitchMode = () => {
+//     setIsLogin(!isLogin);
+//     // Reset form
+//     setFormData({
+//       TenKH: "",
+//       Email: "",
+//       Password: "",
+//       DienThoai: "",
+//       DiaChi: "",
+//       GioiTinh: "Nam",
+//     });
+//   };
+
+//   return (
+//     <div className="auth-container">
+//       <div className="auth-box">
+//         <h2>{isLogin ? "Đăng nhập" : "Đăng ký"}</h2>
+
+//         <form onSubmit={isLogin ? handleLogin : handleRegister}>
+//           {!isLogin && (
+//             <>
+//               <div className="form-group">
+//                 <label>Tên người dùng:</label>
+//                 <input
+//                   type="text"
+//                   name="TenKH"
+//                   value={formData.TenKH}
+//                   onChange={handleInputChange}
+//                   required
+//                   placeholder="Nhập tên người dùng"
+//                 />
+//               </div>
+//               <div className="form-group">
+//                 <label>Số điện thoại:</label>
+//                 <input
+//                   type="tel"
+//                   name="DienThoai"
+//                   value={formData.DienThoai}
+//                   onChange={handleInputChange}
+//                   placeholder="Nhập số điện thoại"
+//                 />
+//               </div>
+//             </>
+//           )}
+
+//           <div className="form-group">
+//             <label>Email:</label>
+//             <input
+//               type="email"
+//               name="Email"
+//               value={formData.Email}
+//               onChange={handleInputChange}
+//               required
+//               placeholder="Nhập email"
+//             />
+//           </div>
+//           <div className="form-group">
+//             <label>Mật khẩu:</label>
+//             <input
+//               type="password"
+//               name="Password"
+//               value={formData.Password}
+//               onChange={handleInputChange}
+//               required
+//               placeholder="Nhập mật khẩu"
+//             />
+//           </div>
+//           <button type="submit" disabled={loading}>
+//             {loading
+//               ? isLogin
+//                 ? "Đang đăng nhập..."
+//                 : "Đang đăng ký..."
+//               : isLogin
+//               ? "Đăng nhập"
+//               : "Đăng ký"}
+//           </button>
+//         </form>
+//         <p>
+//           {isLogin ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
+//           <span
+//             onClick={handleSwitchMode}
+//             style={{ cursor: "pointer", color: "blue" }}
+//           >
+//             {isLogin ? "Đăng ký" : "Đăng nhập"}
+//           </span>
+//         </p>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default AuthPage;
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { message } from "antd";
+import "../assets/AuthPage.css";
+import {
+  checkUsernameExists,
+  findCustomerByEmail,
+  loginCustomer,
+  registerCustomer,
+} from "../api/CustomerApi";
+
+const AuthPage = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    TenKH: "",
+    Email: "",
+    Password: "",
+    DienThoai: "",
+  });
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Logic xử lý đăng nhập
-    alert('Đang đăng nhập với email: ' + email);
-    // Bạn có thể điều hướng sau khi đăng nhập thành công, nếu cần.
-    // navigate('/dashboard');
+  // const handleLogin = async (event) => {
+  //   event.preventDefault();
+  //   setLoading(true);
+
+  //   if (!validateEmail(formData.Email)) {
+  //     message.error("Email không hợp lệ");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await loginCustomer(formData.Email, formData.Password);
+  //     localStorage.setItem("user", JSON.stringify(response.user));
+  //     localStorage.setItem("jwt", response.jwt);
+
+  //     // Lấy thông tin khách hàng dựa trên email
+  //     const customer = await findCustomerByEmail(formData.Email); // Bạn cần tạo hàm này trong CustomerApi
+  //     localStorage.setItem("customer", JSON.stringify(customer)); // Lưu thông tin khách hàng vào local storage
+
+  //     message.success("Đăng nhập thành công");
+  //     navigate("/");
+  //   } catch (error) {
+  //     message.error("Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+
+    if (!validateEmail(formData.Email)) {
+      message.error("Email không hợp lệ");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await loginCustomer(formData.Email, formData.Password);
+      localStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.setItem("jwt", response.jwt);
+
+      // Lấy thông tin khách hàng dựa trên email
+      const customer = await findCustomerByEmail(formData.Email);
+      localStorage.setItem("customer", JSON.stringify(customer)); // Lưu thông tin khách hàng vào local storage
+
+      // Cập nhật thông tin khách hàng vào localStorage
+      const customerInfo = {
+        name: customer.TenKH, // Giả sử bạn có trường TenKH trong customer
+        phone: customer.DienThoai, // Giả sử bạn có trường DienThoai trong customer
+        email: customer.Email, // Giả sử bạn có trường Email trong customer
+      };
+      localStorage.setItem("customerInfo", JSON.stringify(customerInfo));
+
+      message.success("Đăng nhập thành công");
+      navigate("/");
+    } catch (error) {
+      message.error("Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  const handleRegister = (e) => {
-    e.preventDefault();
-    // Giả sử đăng ký thành công, điều hướng sang trang nhập OTP
-    alert('Đăng ký thành công! Chuyển sang trang nhập OTP.');
-    navigate('/otp'); // Chuyển hướng tới trang OTP
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+
+    if (!validateEmail(formData.Email)) {
+      message.error("Email không hợp lệ");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Kiểm tra xem tên người dùng đã tồn tại chưa
+      const usernameExists = await checkUsernameExists(formData.TenKH);
+      console.log("Username exists:", usernameExists);
+      if (usernameExists) {
+        message.error("Tên người dùng đã tồn tại. Vui lòng chọn tên khác.");
+        setLoading(false);
+        return;
+      }
+
+      const result = await registerCustomer(
+        formData.TenKH,
+        formData.Email,
+        formData.Password
+      ); // Gửi tên người dùng, email và mật khẩu
+      localStorage.setItem("user", JSON.stringify(result.user));
+      localStorage.setItem("jwt", result.jwt);
+      const customerInfo = {
+        name: formData.TenKH,
+        phone: formData.DienThoai,
+        email: formData.Email,
+      };
+      localStorage.setItem("customerInfo", JSON.stringify(customerInfo));
+
+      message.success("Đăng ký thành công");
+      navigate("/"); // Chuyển hướng đến trang profile sau khi đăng ký
+    } catch (error) {
+      message.error("Đăng ký thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleSwitchMode = () => {
+    setIsLogin(!isLogin);
+    setFormData({
+      TenKH: "",
+      Email: "",
+      Password: "",
+      DienThoai: "",
+    });
   };
 
   return (
-    <div className="login-page">
-      <header className="header">
-        <div className="logo">
-          <img src={logo} alt="FUTA Bus Lines Logo" />
-        </div>
-      </header>
-
-      <div className="login-container">
-        <div className="login-illustration">
-          <img src={illustration} alt="Illustration" />
-        </div>
-        <div className="login-form">
-          <div className="form-header">
-            <button 
-              className={`tab-button ${activeTab === 'login' ? 'active' : ''}`} 
-              onClick={() => handleTabChange('login')}
-            >
-              Đăng nhập
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'register' ? 'active' : ''}`} 
-              onClick={() => handleTabChange('register')}
-            >
-              Đăng ký
-            </button>
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2>{isLogin ? "Đăng nhập" : "Đăng ký"}</h2>
+        <form onSubmit={isLogin ? handleLogin : handleRegister}>
+          {!isLogin && (
+            <>
+              <div className="form-group">
+                <label>Tên người dùng:</label>
+                <input
+                  type="text"
+                  name="TenKH"
+                  value={formData.TenKH}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Nhập tên người dùng"
+                />
+              </div>
+              <div className="form-group">
+                <label>Số điện thoại:</label>
+                <input
+                  type="tel"
+                  name="DienThoai"
+                  value={formData.DienThoai}
+                  onChange={handleInputChange}
+                  placeholder="Nhập số điện thoại"
+                />
+              </div>
+            </>
+          )}
+          <div className="form-group">
+            <label>Email:</label>
+            <input
+              type="email"
+              name="Email"
+              value={formData.Email}
+              onChange={handleInputChange}
+              required
+              placeholder="Nhập email"
+            />
           </div>
-
-          {activeTab === 'login' && (
-            <form onSubmit={handleLogin}>
-              <div className="input-group">
-                <label htmlFor="email">Nhập email</label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  placeholder="Nhập email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="password">Mật khẩu</label>
-                <input 
-                  type="password" 
-                  id="password" 
-                  placeholder="*******" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="login-button">Đăng nhập</button>
-              <div className="forgot-password">
-                <a href="#">Quên mật khẩu</a>
-              </div>
-            </form>
-          )}
-
-          {activeTab === 'register' && (
-            <form onSubmit={handleRegister}>
-              <div className="input-group">
-                <label htmlFor="register-email">Nhập email</label>
-                <input 
-                  type="email" 
-                  id="register-email" 
-                  placeholder="Nhập email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="login-button">Đăng ký</button>
-            </form>
-          )}
-        </div>
+          <div className="form-group">
+            <label>Mật khẩu:</label>
+            <input
+              type="password"
+              name="Password"
+              value={formData.Password}
+              onChange={handleInputChange}
+              required
+              placeholder="Nhập mật khẩu"
+            />
+          </div>
+          <button type="submit" disabled={loading}>
+            {loading
+              ? isLogin
+                ? "Đang đăng nhập..."
+                : "Đang đăng ký..."
+              : isLogin
+              ? "Đăng nhập"
+              : "Đăng ký"}
+          </button>
+        </form>
+        <p>
+          {isLogin ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
+          <span
+            onClick={handleSwitchMode}
+            style={{ cursor: "pointer", color: "blue" }}
+          >
+            {isLogin ? "Đăng ký" : "Đăng nhập"}
+          </span>
+        </p>
       </div>
-
-      <Footer />
     </div>
   );
 };
 
-export default LoginPage;
+export default AuthPage;

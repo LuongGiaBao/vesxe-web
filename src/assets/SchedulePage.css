@@ -1,0 +1,108 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box; /* Đảm bảo padding và border không làm tăng kích thước phần tử */
+  }
+  
+  /* Cài đặt cho SchedulePage */
+  .SchedulePage {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Đảm bảo trang bao phủ toàn bộ chiều cao */
+    padding: 0; /* Đặt padding bằng 0 */
+    margin: 0; /* Đặt margin bằng 0 */
+  }
+  
+  .schedule-container {
+    width: 90%;
+    margin: 20px auto;
+    border-radius: 10px; /* Bo góc cho khung */
+    background-color: #f9f9f9;
+    flex: 1; /* Đảm bảo phần chính chiếm toàn bộ không gian trống */
+  }
+  
+  .search-box {
+    display: flex;
+    justify-content: space-between; /* Để căn chỉnh các thành phần */
+    align-items: center; /* Căn giữa các thành phần theo chiều dọc */
+    margin-bottom: 20px;
+  }
+  
+  .input-group {
+    display: flex;
+    align-items: center; /* Đảm bảo các thành phần trong input-group được căn giữa */
+    flex-grow: 1;
+  }
+  
+  .search-input {
+    width: 45%; /* Đặt width cho mỗi ô input */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  .swap-button {
+    margin: 0 10px; /* Khoảng cách giữa các input và nút swap */
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #ccc;
+  }
+  
+  .search-btn {
+    padding: 10px 20px;
+    background-color: #5CCC5C;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .schedule-table th, .schedule-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+  
+  .schedule-table th {
+    background-color: #f8f8f8;
+  }
+  
+  .route {
+    display: flex;
+    align-items: center;
+  }
+  
+  .arrow {
+    margin: 0 10px;
+    color: #5CCC5C;
+  }
+  
+  .find-route-btn {
+    background-color: #fee;
+    border: none;
+    padding: 10px;
+    color: #5CCC5C;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Đảm bảo footer nằm ở cuối trang */
+  .footer {
+ 
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    margin-top: auto;
+  }
+  

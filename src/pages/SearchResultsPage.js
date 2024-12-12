@@ -1,43 +1,28 @@
 // src/pages/SearchResultsPage.js
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import SearchResults from '../pages/SearchResults'; // Đảm bảo đường dẫn tới SearchResults
-import { fetchTrips } from '../api/fakeapi'; // Import Fake API
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Banner from '../components/Banner';
-import '../assets/SearchResults.css'; // Import CSS
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import SearchResults from "../pages/SearchResults"; // Đảm bảo đường dẫn tới SearchResults
+import { fetchTrips } from "../api/fakeapi"; // Import Fake API
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Banner from "../components/Banner";
+import "../assets/SearchResults.css"; // Import CSS
 
 const SearchResultsPage = () => {
-  const [trips, setTrips] = useState([]); // Dữ liệu chuyến xe
+  // const [trips, setTrips] = useState([]); // Dữ liệu chuyến xe
   const [loading, setLoading] = useState(true); // Trạng thái tải
   const [error, setError] = useState(null); // Trạng thái lỗi
 
   const location = useLocation();
-  const { departure, destination, date, returnDate, tickets, oneWay } = location.state || {};
+  const [trips, setTrips] = useState(location.state?.trips || []);
 
   // Gọi Fake API để lấy dữ liệu các chuyến xe
-  useEffect(() => {
-    fetchTrips()
-      .then((data) => {
-        setTrips(data); // Lưu dữ liệu chuyến xe
-        setLoading(false); // Tắt trạng thái tải
-      })
-      .catch((err) => {
-        setError('Lỗi khi tải dữ liệu'); // Xử lý lỗi
-        setLoading(false);
-      });
-  }, []);
-
-  // Hiển thị trạng thái tải hoặc lỗi nếu có
-  if (loading) return <p>Đang tải dữ liệu...</p>;
-  if (error) return <p>{error}</p>;
 
   return (
     <div className="search-results-page">
       {/* Navbar ở trên cùng */}
       <Navbar />
-      
+
       {/* Banner ở dưới Navbar */}
       <Banner />
 
